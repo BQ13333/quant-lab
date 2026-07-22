@@ -1,0 +1,145 @@
+version: 1
+name: quant_lab_agent_mandates
+principle: "Agents collect, validate, and report. Deterministic Python promotes or rejects."
+
+storage:
+  hot_local_root: artifacts/data_lake
+  cold_drive_folder_name: QuantLab Data Lake
+  partitioning:
+    - region
+    - market
+    - vendor
+    - asset_type
+    - year
+  memory_rules:
+    - batch_downloads
+    - write_manifests
+    - never_silently_drop_tickers
+    - avoid_loading_global_universe_in_memory
+
+global_required_artifacts:
+  - listings.csv
+  - symbol_map.csv
+  - corporate_actions.csv
+  - delistings.csv
+  - ohlcv.parquet
+  - coverage.csv
+  - quality_flags.csv
+  - manifest.csv
+
+agents:
+  asean_data_agent:
+    lane: data
+    markets:
+      - Malaysia/Bursa
+      - Singapore/SGX
+      - Indonesia/IDX
+    excluded_markets:
+      - Thailand/SET
+      - Philippines/PSE
+      - Vietnam/HOSE
+      - Vietnam/HNX
+      - Vietnam/UPCoM
+    exclusion_reason: "Default production research universe is now Malaysia, Singapore, and Indonesia only; Philippines is not tradable for us, Vietnam was removed, and Thailand is parked outside the current scope."
+    owns:
+      - exchange_listing_adapters
+      - historical_ohlcv_source_mapping
+      - corporate_action_and_delisting_requirements
+      - country_coverage_reports
+    next_files:
+      - src/quant_lab/data/universe_mining.py
+      - src/quant_lab/data/asean_sources.py
+      - docs/UNIVERSE_MINING.md
+
+  north_asia_data_agent:
+    lane: data
+    markets:
+      - Hong Kong/HKEX
+      - Japan/JPX
+      - Korea/KRX
+    excluded_markets:
+      - China/SSE
+      - China/SZSE
+      - China/BSE
+      - Taiwan/TWSE
+      - Taiwan/TPEx
+    exclusion_reason: "China and Taiwan exchanges are outside the current quant-project mandate. Existing artifacts and parser compatibility are retained for audit only."
+    owns:
+      - official_listing_adapters
+      - yahoo_or_vendor_symbol_mapping
+      - corporate_action_requirements
+      - north_asia_coverage_reports
+    next_files:
+      - src/quant_lab/data/universe_mining.py
+      - docs/UNIVERSE_MINING.md
+
+  us_global_data_agent:
+    lane: data
+    markets:
+      - US/Nasdaq
+      - US/NYSE
+      - US/NYSE-American
+      - Global/ETF
+      - Global/benchmark_proxy
+    owns:
+      - us_listing_snapshots
+      - delisted_security_vendor_path
+      - benchmark_proxy_panels
+      - global_storage_plan
+    next_files:
+      - src/quant_lab/data/universe_mining.py
+      - src/quant_lab/data/data_lake.py
+      - docs/UNIVERSE_MINING.md
+
+  data_qa_agent:
+    lane: data_quality
+    owns:
+      - coverage_report
+      - missing_data_flags
+      - stale_price_detection
+      - split_dividend_outlier_detection
+      - survivorship_bias_warnings
+    next_files:
+      - src/quant_lab/data/data_lake.py
+      - src/quant_lab/validation/stress.py
+      - tests/test_data_lake.py
+
+  math_engine_agent:
+    lane: research_math
+    owns:
+      - nested_model_selection
+      - pbo_estimation
+      - robust_portfolio_construction
+      - transaction_cost_models
+      - ml_meta_labeling
+      - regime_router_upgrade
+    next_files:
+      - src/quant_lab/validation/cpcv.py
+      - src/quant_lab/validation/overfit.py
+      - src/quant_lab/optimization/net_ir_optimizer.py
+      - src/quant_lab/portfolio/optimizers.py
+      - src/quant_lab/research/tournament.py
+
+  execution_tca_agent:
+    lane: execution
+    owns:
+      - paper_order_generation
+      - ibkr_readiness
+      - slippage_model
+      - broker_reconciliation
+      - kill_switch_design
+    next_files:
+      - src/quant_lab/execution/ibkr.py
+      - src/quant_lab/execution/ledger.py
+      - docs/EXECUTION_SAFETY.md
+
+promotion_gates:
+  - point_in_time_data_check
+  - data_quality_check
+  - purged_walk_forward_validation
+  - multiple_testing_penalty
+  - final_holdout
+  - cost_stress
+  - liquidity_capacity_stress
+  - risk_review
+  - human_approval

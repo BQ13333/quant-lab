@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "revision_id": "QFORGE20-MYS-V2-DRAFT02-REVISIONSET-01",
+  "materialized_protocol_id": "QFORGE20-MYS-V2-OVERLAY-DRAFT-02",
+  "status": "approved_for_materialization_and_targeted_resolution",
+  "base_protocol_path": "configs/qforge20_malaysia_v2_overlay_draft.json",
+  "base_protocol_canonical_sha256": "05f4454c9cb97b9f8adfcb9485008ed73c1aa5438fc8daaf50cb13f941cd7230",
+  "advisory_synthesis_path": "artifacts/qforge20/QFORGE20-MALAYSIA-RESEARCH-V1/v2_protocol_advisory/advisory_synthesis.json",
+  "advisory_synthesis_file_sha256": "e505aba2ec2ab704d7b708d439c92125da2be0e35f6e31614af6a8940813ecae",
+  "human_revision_approval": {
+    "approved": true,
+    "approved_on": "2026-07-13",
+    "approval_text": "Approve the Draft 02 revision set.",
+    "final_protocol_freeze_approved": false
+  },
+  "resolution_issue_ids": [
+    "V2-ADV-001",
+    "V2-ADV-002",
+    "V2-ADV-003",
+    "V2-ADV-004",
+    "V2-ADV-005",
+    "V2-ADV-006",
+    "V2-ADV-007",
+    "V2-ADV-008"
+  ],
+  "exact_changes": {
+    "common_overlay_version": "MYS-COMMON-RISK-OVERLAY-V2-DRAFT-02",
+    "selection_tie_breaker": "ascending_sha256_of_protocol_id_double_colon_ticker_static_across_dates",
+    "minimum_selected_names": 4,
+    "insufficient_diversification_action": "set_portfolio_exposure_to_zero_record_INSUFFICIENT_DIVERSIFICATION_and_fail_challenger_gate",
+    "volatility_estimator": "sample_standard_deviation_of_unit_exposure_pre_scaled_challenger_gross_daily_returns",
+    "exposure_is_single_portfolio_scalar": true,
+    "exposure_rule": "At each month-end rebalance, use lagged annualized volatility v from the unit-exposure pre-scaled challenger gross-return series. Set exposure to 0.0 when minimum observations are unavailable or v is non-finite or non-positive; set exposure to 1.0 when 0<v<=0.10; otherwise set exposure to 0.10/v. Apply this one scalar after equal weighting and hold it constant until the next month-end.",
+    "volatility_cap_is_not_realized_volatility_guarantee": true,
+    "turnover_definition": "daily_sum_absolute_changes_in_risky_asset_weights_including_changes_from_portfolio_exposure_scalar_cash_is_residual_and_not_a_separate_turnover_leg",
+    "same_initial_entry_turnover_convention_for_both_arms": true,
+    "bootstrap_block_length_sessions": 63,
+    "bootstrap_noninferiority_margin_expression": "IR_challenger - 0.80 * IR_control >= 0",
+    "bootstrap_nonfinite_draws_count_as_failure": true,
+    "parameter_grid_search": false,
+    "post_hoc_combination_search": false,
+    "new_dataset_or_model_family_added": false
+  },
+  "targeted_resolution": {
+    "role_ids": [
+      "selection_bias_validation_specialist",
+      "time_series_dependence_specialist",
+      "high_frequency_econometrics_specialist"
+    ],
+    "maximum_role_calls": 3,
+    "privacy_class": "local_only",
+    "model": "qwen3.5:35b-mlx",
+    "hosted_cost_usd": 0.0
+  },
+  "strategy_trials_reserved": false,
+  "backtests_started": false
+}

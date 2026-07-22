@@ -1,0 +1,490 @@
+version: 2
+name: asia_public_equity_quant_shop_multi_agent_blueprint
+principle: "Agents coordinate research; deterministic Python, data manifests, validation gates, and human approval promote or reject."
+
+source_coverage:
+  latest_run_id: SOURCE-COVERAGE-BOOKS-20260707
+  artifact_dir: artifacts/source_coverage/SOURCE-COVERAGE-BOOKS-20260707
+  corpus_scope: external_books_only
+  markdown_files: 69
+  headings: 32471
+  strategy_or_model_headings: 4884
+  data_dependency_headings: 893
+  source_strategy_specs: 15
+  implemented_source_strategy_specs: 11
+  blocked_source_strategy_specs: 4
+  repo_inclusive_run_id: SOURCE-COVERAGE-08Q-20260707
+  rule: "No strategy implementation without source provenance or explicit original-research note."
+
+coordination:
+  orchestrator_target: langgraph
+  local_first_rule: "Every agent cell must be callable as deterministic Python before LLM autonomy."
+  handoff_required_fields:
+    - run_id
+    - agent_id
+    - input_artifacts
+    - output_artifacts
+    - data_asof_utc
+    - source_asof_utc
+    - known_limitations
+    - pass_fail
+    - next_owner
+  promotion_states:
+    - idea
+    - source_mapped
+    - data_requirements_known
+    - data_available
+    - feature_built
+    - backtested
+    - audit_passed
+    - risk_passed
+    - paper_trading_ready
+    - production_candidate
+
+closed_loop_alpha_factory:
+  active_universe:
+    default_countries:
+      - Malaysia
+      - Singapore
+      - Indonesia
+    removed_countries:
+      Philippines: "Not tradable for us."
+      Vietnam: "Removed from active project universe."
+    parked_countries:
+      Thailand: "Outside current scope."
+    latest_l2_artifact: artifacts/codex_backtests/CODEX_ASEAN_L2_DEEP_20260707/05_l2_deep_extraction/ASEAN-L2-DEEP-MYS-SGP-IDN-20260708
+    u2_backtest_eligible: 169
+    u3_liquid_proxy: 95
+  prime_objective:
+    owner: chief_quant_pm
+    target: "Maximize robust out-of-sample net IR / Sharpe subject to anti-overfit, cost, capacity, and provenance gates."
+    pm_promotion_min_net_sharpe: 3.0
+    pm_promotion_min_deflated_sharpe_probability: 0.95
+    rule: "Sharpe 3 is a PM promotion gate, not permission to overfit the research loop."
+    optimize_for:
+      - out_of_sample_net_sharpe
+      - out_of_sample_net_information_ratio
+      - deflated_sharpe
+      - probabilistic_sharpe
+      - low_pbo
+      - final_holdout_survival
+      - low_turnover
+      - capacity_at_usd5m_and_above
+      - incremental_alpha_after_correlation_penalty
+      - source_originality_and_explainability
+    never_optimize_for:
+      - raw_in_sample_sharpe_alone
+      - final_holdout_tuned_score
+      - one_stock_or_one_month_edge
+      - untraceable_ml_features
+      - variants_excluding_killed_trials
+  loop_topology:
+    - chief_quant_pm_alpha_mission
+    - markdown_source_extraction
+    - formula_registry
+    - data_qa_pit_availability
+    - feature_factory
+    - model_factory
+    - backtest_engine_u2_u3
+    - olympiad_math_disproof
+    - portfolio_pm_mixture
+    - risk_capacity_tca
+    - research_memo_and_kill_report
+    - pm_decision_gate
+  sub_agents:
+    markdown_source_extraction:
+      - book_inventory_agent
+      - formula_extractor_agent
+      - strategy_taxonomist_agent
+      - source_provenance_agent
+      - copyright_safety_agent
+    model_factory:
+      - baseline_model_agent
+      - ml_model_agent
+      - deep_learning_agent
+      - genetic_formula_agent
+      - regime_router_agent
+      - ensemble_agent
+    olympiad_math:
+      - proof_obligation_agent
+      - cpcv_pbo_agent
+      - deflated_sharpe_agent
+      - reality_check_agent
+      - bootstrap_agent
+      - parameter_surface_agent
+      - adversarial_validation_agent
+    portfolio_pm:
+      - alpha_book_pm
+      - allocator_agent
+      - risk_budget_agent
+      - capacity_agent
+      - kill_switch_agent
+  loop_back_rules:
+    data_failure: data_factory_or_blocked_by_data
+    leakage_failure: feature_factory_and_validation
+    weak_net_return: model_factory_mutation
+    turnover_or_cost_failure: portfolio_construction_and_tca
+    concentration_failure: allocator_and_universe_breadth_review
+    multiple_testing_failure: kill_or_demote
+    holdout_failure: kill_exact_variant
+    correlated_candidate: ensemble_only_if_incremental
+  candidate_ledger_required_columns:
+    - candidate_id
+    - parent_candidate_id
+    - source_strategy_id
+    - formula_family
+    - feature_set_id
+    - model_class
+    - hyperparameter_hash
+    - train_window
+    - validation_window
+    - holdout_window
+    - trial_number
+    - net_sharpe
+    - net_ir
+    - max_drawdown
+    - turnover
+    - cost_assumption_bps
+    - pbo
+    - deflated_sharpe
+    - psr
+    - capacity_usd
+    - promotion_state
+    - kill_reason
+  research_grade_minimum_gate:
+    require_u2_and_u3_backtests: true
+    sealed_final_holdout: "2024-01-02 to 2026-07-06"
+    require_pm_promotion_min_net_sharpe: 3.0
+    require_pm_promotion_min_deflated_sharpe_probability: 0.95
+    require_positive_net_sharpe_after_costs: true
+    require_multiple_testing_adjustment: true
+    require_non_spiky_parameter_surface: true
+    require_capacity_and_drawdown_pass: true
+    require_source_or_original_research_id: true
+
+cells:
+  research_director:
+    agents:
+      - chief_quant_pm
+      - research_queue_manager
+      - experiment_controller
+      - promotion_committee_secretary
+    owns:
+      - strategy_backlog
+      - experiment_priority
+      - promotion_minutes
+      - kill_or_promote_decisions
+    artifacts:
+      - artifacts/research_queue/strategy_backlog.csv
+      - artifacts/research_queue/experiment_queue.csv
+      - artifacts/research_queue/promotion_minutes.md
+    done_criteria:
+      - "Every experiment has owner, source, data requirement, expected artifact, and gate."
+      - "No model goes to validation without source and data lineage."
+
+  source_mining:
+    agents:
+      - markdown_librarian
+      - strategy_taxonomist
+      - formula_extractor
+      - source_gap_auditor
+      - copyright_safety_editor
+    owns:
+      - markdown_inventory
+      - strategy_heading_coverage
+      - source_to_model_mapping
+      - blocked_by_data_mapping
+    input_artifacts:
+      - artifacts/source_coverage/SOURCE-COVERAGE-BOOKS-20260707/heading_inventory.csv
+      - artifacts/source_coverage/SOURCE-COVERAGE-BOOKS-20260707/strategy_heading_inventory.csv
+      - artifacts/source_coverage/SOURCE-COVERAGE-BOOKS-20260707/source_strategy_spec_coverage.csv
+      - artifacts/source_coverage/SOURCE-COVERAGE-BOOKS-20260707/source_file_coverage.csv
+      - src/quant_lab/models/source_strategies.py
+    output_artifacts:
+      - artifacts/source_coverage/source_to_model_gap.csv
+      - artifacts/source_coverage/blocked_by_data.csv
+      - artifacts/source_coverage/source_priority_queue.csv
+    done_criteria:
+      - "Every high-priority heading is implemented, blocked by data, not applicable, or needs human review."
+      - "No long copyrighted source excerpts are copied into artifacts."
+
+  data_factory:
+    agents:
+      - asean_security_master_agent
+      - north_asia_security_master_agent
+      - refinitiv_symbol_map_agent
+      - corporate_actions_agent
+      - delisting_survivorship_agent
+      - fx_benchmark_agent
+      - fundamentals_pit_agent
+      - analyst_revisions_agent
+      - earnings_events_agent
+      - liquidity_adv_agent
+    owns:
+      - security_master
+      - symbol_map
+      - point_in_time_fundamentals
+      - analyst_revisions
+      - earnings_events
+      - corporate_actions
+      - ohlcv
+      - fx
+      - liquidity
+    artifacts:
+      - listings.csv
+      - symbol_map.csv
+      - security_master.parquet
+      - corporate_actions.csv
+      - delistings.csv
+      - fundamentals_pit.parquet
+      - analyst_revisions.parquet
+      - earnings_events.parquet
+      - ohlcv/
+      - coverage.csv
+      - quality_flags.csv
+      - data_manifest.json
+    memory_limits:
+      - "Batch by market/vendor/year."
+      - "Never load global universe into memory."
+      - "Write partitioned Parquet before backtests."
+
+  data_qa:
+    agents:
+      - coverage_auditor
+      - calendar_alignment_agent
+      - split_dividend_sanity_agent
+      - outlier_return_agent
+      - stale_price_agent
+      - lookahead_leakage_agent
+    gates:
+      - coverage_pass
+      - stale_price_pass
+      - outlier_review_pass
+      - corporate_action_sanity_pass
+      - pit_known_at_pass
+    artifacts:
+      - qa_summary.md
+      - coverage.csv
+      - quality_flags.csv
+      - leakage_checks.csv
+      - eligible_universe.csv
+
+  feature_factory:
+    agents:
+      - price_volume_feature_agent
+      - fundamental_factor_agent
+      - earnings_surprise_agent
+      - analyst_revision_agent
+      - macro_fx_agent
+      - microstructure_feature_agent
+      - feature_lineage_agent
+    artifacts:
+      - feature_spec.yaml
+      - feature_lineage.csv
+      - feature_qa.csv
+      - feature_cache_manifest.json
+    required_fields:
+      - input_columns
+      - known_at_timestamp
+      - release_lag
+      - lookback
+      - rebalance_cadence
+      - source_vendor
+
+  strategy_coding:
+    agents:
+      - source_strategy_porter
+      - model_api_guardian
+      - strategy_unit_test_agent
+      - source_provenance_agent
+      - feature_cache_adapter
+    owns:
+      - AlphaModel_implementations
+      - source_strategy_manifest
+      - model_unit_tests
+      - source_metadata_columns
+    artifacts:
+      - src/quant_lab/models/source_strategies.py
+      - tests/test_source_strategies.py
+      - source_strategy_manifest.csv
+      - strategy_model_card.md
+
+  phd_math_validation:
+    canonical_panel_config: configs/phd_math_specialists.json
+    panel_rule: "Exactly 20 PhD-level mathematical specialist roles; legacy validators are capabilities/aliases, not additional agents."
+    agents:
+      - measure_probability_martingale_specialist
+      - stochastic_calculus_rough_paths_specialist
+      - stochastic_control_hjb_bsde_specialist
+      - numerical_pde_sde_monte_carlo_specialist
+      - time_series_dependence_specialist
+      - high_frequency_econometrics_specialist
+      - high_dimensional_statistics_rmt_specialist
+      - robust_statistics_extremes_specialist
+      - bayesian_latent_variable_specialist
+      - causal_identification_invariance_specialist
+      - sequential_inference_online_learning_specialist
+      - selection_bias_validation_specialist
+      - learning_theory_generalization_specialist
+      - neural_dynamics_sequence_specialist
+      - neural_operator_scientific_ml_specialist
+      - generative_diffusion_schrodinger_specialist
+      - graph_network_systemic_risk_specialist
+      - optimization_information_geometry_specialist
+      - portfolio_dro_optimal_transport_specialist
+      - microstructure_hawkes_execution_specialist
+    legacy_capability_aliases:
+      nested_cv_agent: selection_bias_validation_specialist
+      cpcv_pbo_agent: selection_bias_validation_specialist
+      deflated_sharpe_agent: selection_bias_validation_specialist
+      white_reality_check_agent: selection_bias_validation_specialist
+      spa_test_agent: selection_bias_validation_specialist
+      fdr_multiple_testing_agent: sequential_inference_online_learning_specialist
+      ic_decay_breadth_agent: time_series_dependence_specialist
+      regime_stability_agent: time_series_dependence_specialist
+      bayesian_model_risk_agent: bayesian_latent_variable_specialist
+      bootstrap_stress_agent: robust_statistics_extremes_specialist
+      parameter_surface_agent: optimization_information_geometry_specialist
+    current_methods:
+      - walk_forward_validation
+      - purged_embargoed_splits
+      - cpcv_splitter
+      - final_holdout_isolation
+      - deflated_sharpe
+      - pbo_even_odd_proxy
+      - multiple_comparison_adjustment
+      - cost_stress
+      - drawdown_turnover_concentration_gates
+    next_methods:
+      - full_cscv_path_pbo
+      - nested_purged_cv
+      - white_reality_check
+      - hansen_spa
+      - stationary_block_bootstrap
+      - fdr_holm_bonferroni_report
+      - parameter_surface_flatness
+      - search_boundary_detection
+      - permuted_label_null_tests
+      - rolling_psr_dsr_decay
+    promotion_gates:
+      research_grade:
+        min_deflated_sharpe: 0.80
+        max_pbo: 0.10
+        max_spa_adjusted_pvalue: 0.05
+        no_single_month_country_asset_dominance: true
+        no_parameter_boundary_optimum: true
+      paper_queue:
+        min_deflated_sharpe: 0.95
+        max_pbo: 0.10
+        require_final_holdout_pass: true
+    artifacts:
+      - split_manifest.csv
+      - trial_registry.parquet
+      - returns_matrix.parquet
+      - cscv_pbo.json
+      - multiple_testing_report.csv
+      - parameter_surface.csv
+      - null_tests.csv
+      - decay_report.csv
+      - killed_strategies.csv
+      - overfit_audit.json
+
+  portfolio_construction:
+    agents:
+      - mean_variance_agent
+      - robust_covariance_agent
+      - black_litterman_agent
+      - risk_parity_agent
+      - hrp_agent
+      - mean_cvar_agent
+      - turnover_constrained_optimizer_agent
+      - country_sector_neutrality_agent
+      - ensemble_weight_agent
+    methods:
+      - ledoit_wolf_covariance
+      - oas_covariance
+      - nonlinear_shrinkage
+      - ewma_covariance
+      - regime_conditioned_covariance
+      - pca_factor_covariance
+      - robust_mean_variance
+      - mean_cvar
+      - cdar_drawdown_constrained
+      - hierarchical_risk_parity
+      - black_litterman
+      - entropy_pooling
+      - resampled_efficient_frontier
+      - multi_objective_net_ir_turnover_capacity
+    gates:
+      - solver_success
+      - kkt_residual_pass
+      - max_asset_weight_pass
+      - max_country_weight_pass
+      - leverage_pass
+      - two_x_three_x_cost_stress_pass
+      - adv_capacity_pass
+      - factor_exposure_explainable
+    artifacts:
+      - optimizer_inputs.json
+      - covariance_diagnostics.csv
+      - eigen_spectrum.csv
+      - solver_solution.json
+      - constraint_shadow_prices.csv
+      - risk_budget.csv
+      - factor_exposure.csv
+      - capacity_curve.csv
+      - impact_sensitivity.csv
+      - weights.parquet
+      - orders_preview.csv
+
+  risk_capacity_tca:
+    agents:
+      - liquidity_capacity_agent
+      - transaction_cost_model_agent
+      - slippage_agent
+      - stress_scenario_agent
+      - drawdown_kill_switch_agent
+      - paper_fill_reconciliation_agent
+    artifacts:
+      - capacity_report.csv
+      - slippage_model.json
+      - tca_report.csv
+      - stress_report.md
+      - kill_switch_rules.yaml
+
+  reporting_obsidian:
+    agents:
+      - model_card_writer
+      - tear_sheet_agent
+      - experiment_ledger_agent
+      - weekly_research_digest_agent
+      - audit_pack_agent
+    artifacts:
+      - vault/30_experiments/<run_id>/index.md
+      - model_card.md
+      - backtest_tearsheet.md
+      - killed_strategy_report.csv
+      - weekly_digest.md
+
+  execution_readiness:
+    agents:
+      - paper_order_agent
+      - ibkr_gateway_agent
+      - broker_safety_agent
+      - reconciliation_agent
+      - human_approval_agent
+    live_trading_default: disabled
+    artifacts:
+      - paper_orders.csv
+      - paper_fills.csv
+      - broker_reconciliation.csv
+      - execution_safety_checklist.md
+
+non_negotiable_rules:
+  - no_orphan_strategies
+  - no_silent_ticker_drops
+  - no_future_data
+  - no_survivorship_only_promotion
+  - no_high_sharpe_without_multiple_testing_correction
+  - no_live_trading_before_paper_trading
+  - no_agent_bypasses_deterministic_validation

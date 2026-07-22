@@ -1,0 +1,21 @@
+{
+  "workflow_name": "QForge-20",
+  "workflow_version": "QFORGE20-MALAYSIA-RESEARCH-V1",
+  "local_planning": {
+    "endpoint": "http://127.0.0.1:11434",
+    "model": "qwen3.5:35b-mlx",
+    "privacy_class": "local_only"
+  },
+  "research": {
+    "endpoint": "https://api.deepseek.com",
+    "model": "deepseek-v4-pro",
+    "privacy_class": "cloud_sanitized",
+    "reasoning_effort": "high",
+    "per_call_cost_usd": 0.1,
+    "hosted_fallback": false,
+    "secret_sources": [
+      "DEEPSEEK_API_KEY",
+      "macOS Keychain service qforge20-deepseek"
+    ]
+  }
+}

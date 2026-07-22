@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "revision_id": "QFORGE20-MYS-NEXT-COHORT-DRAFT02-REVISIONSET-01",
+  "base_protocol_id": "QFORGE20-MYS-NEXT-COHORT-PREREG-DRAFT-01",
+  "base_protocol_canonical_sha256": "4856e51092de8fffc1bba2c5ca7bb2e53370a16e3dba36d0086943ff0d4e6762",
+  "status": "approved_for_materialization_and_targeted_resolution",
+  "advisory_report_path": "artifacts/qforge20/QFORGE20-MALAYSIA-RESEARCH-V1/next_cohort_prereg_draft01_advisory/advisory_report.json",
+  "advisory_report_sha256": "1044c47b81e762c97dd10e3aba5bcd0cb48f598378d651207fe1455bdc76e44b",
+  "advisory_synthesis_path": "artifacts/qforge20/QFORGE20-MALAYSIA-RESEARCH-V1/next_cohort_prereg_draft01_advisory/advisory_synthesis.json",
+  "resolution_issue_ids": [
+    "NEXT-ADV-001",
+    "NEXT-ADV-002",
+    "NEXT-ADV-003",
+    "NEXT-ADV-004",
+    "NEXT-ADV-005",
+    "NEXT-ADV-006",
+    "NEXT-ADV-007",
+    "NEXT-ADV-008"
+  ],
+  "exact_changes": {
+    "active_hypothesis_ids": [
+      "MYS-H-NEXT-PVCONF-21-60",
+      "MYS-H-NEXT-ILLIQ-60",
+      "MYS-H-NEXT-TOM-L1-F3",
+      "MYS-H-NEXT-GAPREV-X20"
+    ],
+    "moved_to_kiv": {
+      "hypothesis_id": "MYS-H-NEXT-PAIR-504-63",
+      "reason_codes": [
+        "HISTORICAL_INDUSTRY_CLASSIFICATION_UNAVAILABLE",
+        "HISTORICAL_BORROW_AVAILABILITY_UNAVAILABLE",
+        "HISTORICAL_BORROW_COST_UNAVAILABLE"
+      ],
+      "future_activation_lane": "Refinitiv/LSEG point-in-time sector history plus securities lending"
+    },
+    "primary_hypothesis_count": 4,
+    "multiplicity_correction": "Holm_across_all_4_primary_hypotheses",
+    "interim_performance_monitoring": "forbidden",
+    "infrastructure_only_monitoring": true,
+    "result_unseal_condition": "all four registered strategy computations reach terminal engineering state",
+    "universe_evidence_label": "current_survivor_historical_research_only_non_promotable",
+    "lag_lineage_audit_required": true,
+    "quality_exclusions": [
+      "nonfinite_input",
+      "zero_or_missing_lagged_volume",
+      "nonpositive_lagged_ADV",
+      "lagged_stale_close",
+      "lagged_bad_OHLC"
+    ],
+    "calendar_rule": "intersection_of_valid_Bursa_observation_sessions_and_frozen_XKLS_calendar_receipt_with_disagreements_logged",
+    "calendar_window_search": false,
+    "reference_capacity_notional_myr": 10000000,
+    "capacity_curve_notionals_myr": [1000000, 10000000, 100000000],
+    "maximum_trade_participation_of_lagged_ADV": 0.05,
+    "maximum_positive_PnL_concentration": 0.35,
+    "opening_gap_additional_slippage_bps_one_way": 25,
+    "opening_gap_total_base_cost_bps_one_way": 45,
+    "opening_gap_total_stress_cost_bps_one_way": 65,
+    "opening_gap_break_even_slippage_required": true,
+    "price_volume_control_grid": false,
+    "price_volume_incrementality_gate": "positive_factor_residual_IR_after_registered_momentum_exposure",
+    "parameter_grid_search": false,
+    "alternative_sign_search": false,
+    "post_hoc_combination_search": false,
+    "neural_or_adaptive_model_added": false
+  },
+  "targeted_resolution_after_materialization": {
+    "role_ids": [
+      "selection_bias_validation_specialist",
+      "time_series_dependence_specialist",
+      "high_frequency_econometrics_specialist"
+    ],
+    "maximum_role_calls": 3,
+    "privacy_class": "local_only",
+    "primary_model": "qwen3.5:35b-mlx",
+    "disagreement_model": "deepseek-r1:70b",
+    "hosted_cost_usd": 0.0
+  },
+  "human_revision_approval": {
+    "approved": true,
+    "approved_on": "2026-07-13",
+    "approval_text": "approve",
+    "approved_revision_id": "QFORGE20-MYS-NEXT-COHORT-DRAFT02-REVISIONSET-01",
+    "final_protocol_freeze_approved": true
+  },
+  "strategy_trials_reserved": false,
+  "backtests_started": false,
+  "dry_run_authorized": false,
+  "live_execution_authorized": false
+}

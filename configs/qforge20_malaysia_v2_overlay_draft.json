@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "protocol_id": "QFORGE20-MYS-V2-OVERLAY-DRAFT-01",
+  "workflow_name": "QForge-20",
+  "status": "draft_pending_twenty_role_review_and_human_freeze",
+  "market": "Malaysia",
+  "universe_contract": {
+    "primary": "MALAYSIA-U3-34",
+    "robustness": "MALAYSIA-U2-62",
+    "research_cutoff": "2026-07-06",
+    "observations_through_cutoff_are_research_only": true
+  },
+  "approval": {
+    "twenty_role_advisory_complete": false,
+    "human_freeze_approved": false,
+    "strategy_trials_reserved": false,
+    "backtests_started": false
+  },
+  "source_hashes": {
+    "specialist_registry_sha256": "f83d794ddaee52de207b1b80f520def6eb73e31f38af2908809cd9ee660f2a70",
+    "qforge20_v1_index_sha256": "d0fa676d5dd9292564c7d6e48d75900dfcd8c2ffbf334a3909b00bc41c151b92",
+    "malaysia_v1_report_sha256": "2cb263b14e9eeab60ef4c3c06cac817eaf517ce0f88ef32cddae458a0a9c6c83"
+  },
+  "claim": "One common causal rank-hysteresis and portfolio-volatility-cap overlay reduces annual turnover and maximum drawdown for three distinct frozen Malaysia signals while retaining at least 80 percent of each paired control's research-period net information ratio after unchanged costs.",
+  "parent_strategies": [
+    {
+      "experiment_id": "QFORGE20-MYS-V2-E01",
+      "strategy_id": "MYS-S-EWMAC-16-64",
+      "family": "ewmac",
+      "strategy_spec_sha256": "ce8ee5c42093846350dc84d9d46c144f0e28c5e9194f46965eaa46c43112f555"
+    },
+    {
+      "experiment_id": "QFORGE20-MYS-V2-E02",
+      "strategy_id": "MYS-S-RESIDMOM-126",
+      "family": "residual_momentum",
+      "strategy_spec_sha256": "743e5a272845ebd9b35714b9b49eb996646cd5fa1413456fb92ac3d1ecd4bda9"
+    },
+    {
+      "experiment_id": "QFORGE20-MYS-V2-E03",
+      "strategy_id": "MYS-S-LOWVOL-126",
+      "family": "low_volatility",
+      "strategy_spec_sha256": "bce6545fc3b0c0be98e4bf04e1f6fff117927ccce1d60f0824d3c6166d792f10"
+    }
+  ],
+  "paired_design": {
+    "experiment_count": 3,
+    "evaluated_arm_count": 6,
+    "lifetime_denominator_increment_on_reservation": 6,
+    "control_arm": "Exact V1 signal and portfolio implementation replayed without the V2 overlay.",
+    "challenger_arm": "The identical frozen V1 signal with the exact common V2 overlay; no signal parameter changes.",
+    "paired_calendar": true,
+    "paired_universes": true,
+    "paired_cost_models": true,
+    "control_replay_must_match_prior_return_hash": true,
+    "post_hoc_combination_search": false,
+    "parameter_grid_search": false
+  },
+  "arms": [
+    {"arm_id": "QFORGE20-MYS-V2-E01-A", "experiment_id": "QFORGE20-MYS-V2-E01", "strategy_id": "MYS-S-EWMAC-16-64", "arm": "control"},
+    {"arm_id": "QFORGE20-MYS-V2-E01-B", "experiment_id": "QFORGE20-MYS-V2-E01", "strategy_id": "MYS-S-EWMAC-16-64", "arm": "challenger"},
+    {"arm_id": "QFORGE20-MYS-V2-E02-A", "experiment_id": "QFORGE20-MYS-V2-E02", "strategy_id": "MYS-S-RESIDMOM-126", "arm": "control"},
+    {"arm_id": "QFORGE20-MYS-V2-E02-B", "experiment_id": "QFORGE20-MYS-V2-E02", "strategy_id": "MYS-S-RESIDMOM-126", "arm": "challenger"},
+    {"arm_id": "QFORGE20-MYS-V2-E03-A", "experiment_id": "QFORGE20-MYS-V2-E03", "strategy_id": "MYS-S-LOWVOL-126", "arm": "control"},
+    {"arm_id": "QFORGE20-MYS-V2-E03-B", "experiment_id": "QFORGE20-MYS-V2-E03", "strategy_id": "MYS-S-LOWVOL-126", "arm": "challenger"}
+  ],
+  "common_overlay": {
+    "version": "MYS-COMMON-RISK-OVERLAY-V2-DRAFT-01",
+    "rebalance_frequency": "ME",
+    "score_information_lag_sessions": 1,
+    "entry_rank_quantile": 0.80,
+    "retention_rank_quantile": 0.60,
+    "maximum_position_fraction_of_valid_universe": 0.20,
+    "selection_order": "Retain finite-score incumbents at or above the retention quantile, ranked by descending current score then ascending ticker; truncate at K. Fill remaining slots from non-incumbents at or above the entry quantile in the same deterministic order. K is ceil(0.20 times the valid-score universe count). Unfilled slots remain cash.",
+    "position_weighting": "equal_weight_within_selected_names",
+    "short_positions_allowed": false,
+    "portfolio_volatility_cap_annual": 0.10,
+    "volatility_estimator": "sample_standard_deviation_of_control_gross_daily_returns",
+    "volatility_lookback_sessions": 63,
+    "volatility_minimum_observations": 42,
+    "volatility_information_lag_sessions": 1,
+    "annualization_sessions": 252,
+    "exposure_rule": "At each month-end rebalance, exposure is min(1.0, 0.10 divided by finite positive lagged annualized volatility). Exposure is 0.0 when minimum observations are unavailable or volatility is non-finite or non-positive. Hold exposure constant until the next month-end.",
+    "maximum_gross_exposure": 1.0,
+    "cash_return": 0.0,
+    "drawdown_timing_rule": null,
+    "turnover_definition": "daily_sum_absolute_weight_change_including_cash_exposure_changes",
+    "base_cost_bps_one_way": 20.0,
+    "stress_cost_bps_one_way": 40.0
+  },
+  "mandatory_absolute_gates": {
+    "net_information_ratio_strictly_positive": true,
+    "deflated_sharpe_probability_minimum": 0.95,
+    "pbo_maximum": 0.20,
+    "maximum_drawdown_floor": -0.20,
+    "annual_turnover_maximum": 3.0,
+    "stress_net_information_ratio_strictly_positive": true,
+    "maximum_asset_weight": 0.25,
+    "u2_net_information_ratio_strictly_positive": true,
+    "holm_adjusted_one_sided_pvalue_maximum": 0.05
+  },
+  "mandatory_paired_gates": {
+    "challenger_net_information_ratio_retention_minimum": 0.80,
+    "challenger_annual_turnover_ratio_maximum": 0.75,
+    "challenger_maximum_drawdown_must_be_no_worse_than_control": true,
+    "control_return_hash_mismatch_is_global_stop": true,
+    "paired_moving_block_bootstrap": {
+      "block_length_sessions": 21,
+      "replications": 10000,
+      "random_seed": 20260713,
+      "same_block_indices_for_both_arms": true,
+      "net_information_ratio_retention_probability_minimum": 0.90
+    }
+  },
+  "cohort_decision": {
+    "individual_pass_requires_every_absolute_and_paired_gate": true,
+    "common_overlay_acceptance_requires_individual_passes": 2,
+    "common_overlay_acceptance_denominator": 3,
+    "model_vote_can_override_gate": false,
+    "research_pass_can_authorize_execution": false
+  },
+  "stopping_rules": [
+    "Stop the whole cohort before challenger evaluation if any control return hash differs from its frozen V1 evidence.",
+    "Stop and revise the draft before reservation if one specialist supplies a reproducible causal, mathematical, numerical, or accounting counterexample.",
+    "After human freeze, do not alter the overlay, thresholds, universes, costs, block length, seed, or strategy parameters.",
+    "Run each of the six pre-registered arms exactly once; infrastructure retries replay the identical arm and do not create a new specification.",
+    "A failed challenger remains failed. No within-V2 tuning, mutation, alternative threshold, or combination search is permitted.",
+    "Close the cohort after all three pairs reach a terminal research state or after one global-stop condition.",
+    "Any later revision is a separately named V3 protocol with new child identities and lifetime-denominator entries."
+  ],
+  "evidence_requirements": [
+    "Content-addressed protocol, source hashes, code hash, data hash, universe hash, and cost configuration.",
+    "Daily control and challenger weights, gross returns, base-cost returns, stress-cost returns, and turnover series.",
+    "Control replay return-hash equality proof before challenger results are read.",
+    "U3 primary and unchanged U2 robustness results on identical calendars.",
+    "Paired moving-block-bootstrap receipt with fixed block length, seed, and replication count.",
+    "Lifetime trial count, DSR, PBO, HAC p-values, Holm correction, drawdown, concentration, regime, factor, and decay evidence.",
+    "All twenty advisory reviews, disagreements, counterexamples, and deterministic resolution records.",
+    "Explicit human freeze receipt before any of the six strategy arms is reserved."
+  ],
+  "twenty_role_advisory": {
+    "specialist_count": 20,
+    "role_ids": [
+      "measure_probability_martingale_specialist",
+      "stochastic_calculus_rough_paths_specialist",
+      "stochastic_control_hjb_bsde_specialist",
+      "numerical_pde_sde_monte_carlo_specialist",
+      "time_series_dependence_specialist",
+      "high_frequency_econometrics_specialist",
+      "high_dimensional_statistics_rmt_specialist",
+      "robust_statistics_extremes_specialist",
+      "bayesian_latent_variable_specialist",
+      "causal_identification_invariance_specialist",
+      "sequential_inference_online_learning_specialist",
+      "selection_bias_validation_specialist",
+      "learning_theory_generalization_specialist",
+      "neural_dynamics_sequence_specialist",
+      "neural_operator_scientific_ml_specialist",
+      "generative_diffusion_schrodinger_specialist",
+      "graph_network_systemic_risk_specialist",
+      "optimization_information_geometry_specialist",
+      "portfolio_dro_optimal_transport_specialist",
+      "microstructure_hawkes_execution_specialist"
+    ],
+    "common_questions": [
+      "Is the proposed overlay causally measurable and adapted to the declared information set?",
+      "Is any scalar rule mathematically undefined, numerically unstable, or capable of creating hidden leverage or turnover?",
+      "Do the paired and absolute gates test the stated turnover/drawdown claim without selecting on observed V2 results?",
+      "What one reproducible counterexample would force revision before freeze?",
+      "Which deterministic calculation resolves your objection, and what exact failure condition should it use?",
+      "Which parts of your mandate are out of scope for daily OHLCV and must be recorded as abstentions rather than invented evidence?"
+    ],
+    "decision_rule": "Advisory verdicts do not vote. A reproducible counterexample blocks freeze until resolved; unsupported recommendations and data-incompatible requests are recorded but do not expand scope."
+  }
+}

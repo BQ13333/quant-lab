@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "source_id": "BLOOMBERG-MYS-BULK-2005-202604-V1",
+  "provider_description": "Bloomberg-derived Malaysia daily market and accounting history supplied by a known internal research contact",
+  "country": "Malaysia",
+  "country_code": "MYS",
+  "exchange": "Bursa Malaysia",
+  "currency": "MYR",
+  "folder_url": "https://drive.google.com/drive/folders/1vtVEtdCbwdWtTbozoHNGv2hVT7X3M8dk?usp=sharing",
+  "source_attestation": {
+    "status": "user_attested_permission_to_ingest_for_internal_research",
+    "attested_on": "2026-07-13",
+    "relationship": "known junior research contact",
+    "quality_claim": "healthy Bloomberg-derived data with high precision and accuracy",
+    "scope_note": "Attestation is recorded as provenance and permission to ingest for internal research; vendor licence and redistribution scope were not independently verified. Deterministic admission tests still control research use."
+  },
+  "research_controls": {
+    "market_price_volume_lane": "candidate_pending_mechanical_admission",
+    "fundamentals_lane": "quarantined_pending_point_in_time_timestamp_proof",
+    "analyst_estimates_lane": "quarantined_pending_revision_timestamp_proof",
+    "terminal_delisting_economics": "quarantined_pending_event_reconciliation",
+    "strategy_execution_authorized": false,
+    "dry_run_authorized": false
+  },
+  "files": [
+    {
+      "period": "2005-2007",
+      "filename": "data_2005-2007.csv",
+      "drive_file_id": "1RphGAaQHsgKqm5Nmrsr0AVwaoEdyBMxJ",
+      "expected_bytes": 298428980
+    },
+    {
+      "period": "2008-2010",
+      "filename": "data_2008-2010.csv",
+      "drive_file_id": "1AdfAXIgSdw_myE1NIDDbmXrq9ZuzaBgE",
+      "expected_bytes": 296901338
+    },
+    {
+      "period": "2011-2013",
+      "filename": "data_2011-2013.csv",
+      "drive_file_id": "10ht1HVZyYXKciSD5xcY9lel6Q2eZPy8Y",
+      "expected_bytes": 282314275
+    },
+    {
+      "period": "2014-2016",
+      "filename": "data_2014-2016.csv",
+      "drive_file_id": "1saQA3IfiRCkDBRzHfK6ckrUFRI2B477b",
+      "expected_bytes": 274492678
+    },
+    {
+      "period": "2017-2019",
+      "filename": "data_2017-2019.csv",
+      "drive_file_id": "1kaziSQ5SDcokpENQQpOSGId3xoOnzXIw",
+      "expected_bytes": 276442051
+    },
+    {
+      "period": "2020-2022",
+      "filename": "data_2020-2022.csv",
+      "drive_file_id": "1HLKHQ8bTx8wc7IPC6UL8q0o-Qnxe0202",
+      "expected_bytes": 292092329
+    },
+    {
+      "period": "2023-2025",
+      "filename": "data_2023-2025.csv",
+      "drive_file_id": "1omE2OUJM5F7_RrWHEXVTu2N6dWU9_pwM",
+      "expected_bytes": 332094154
+    },
+    {
+      "period": "2026",
+      "filename": "data_2026.csv",
+      "drive_file_id": "1Ksqm24-NsRRKQaMqMJhxMBZ9I499Jqgq",
+      "expected_bytes": 31339599
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+version: 1
+name: quant_lab_project_market_scope
+effective_date: 2026-07-12
+
+active_markets:
+  - country: Malaysia
+    exchanges: [Bursa Malaysia]
+  - country: Singapore
+    exchanges: [SGX]
+  - country: Indonesia
+    exchanges: [IDX]
+  - country: Hong Kong
+    exchanges: [HKEX]
+  - country: Japan
+    exchanges: [JPX]
+  - country: South Korea
+    exchanges: [KRX]
+  - country: United States
+    exchanges: [NYSE, NASDAQ, NYSE American]
+
+excluded_markets:
+  - country: China
+    exchanges: [SSE, SZSE, BSE]
+    reason: outside_current_quant_project_mandate
+  - country: Taiwan
+    exchanges: [TWSE, TPEx]
+    reason: outside_current_quant_project_mandate
+  - country: Thailand
+    exchanges: [SET]
+    reason: parked_outside_current_scope
+  - country: Philippines
+    exchanges: [PSE]
+    reason: not_tradable_for_project
+  - country: Vietnam
+    exchanges: [HOSE, HNX, UPCoM]
+    reason: removed_from_project
+
+policy:
+  active_queues_must_exclude_excluded_markets: true
+  backtests_must_exclude_excluded_markets: true
+  scorecards_must_exclude_excluded_markets: true
+  new_vendor_extraction_must_exclude_excluded_markets: true
+  preserve_existing_artifacts_for_audit: true
+  retain_dormant_parser_compatibility: true

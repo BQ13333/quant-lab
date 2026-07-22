@@ -1,0 +1,164 @@
+version: 1
+name: quant_lab_data_source_registry
+
+tiers:
+  discovery: "Current listings and source mapping only."
+  smoke_test: "Current listings plus bounded OHLCV coverage."
+  serious_research: "Point-in-time security master, delistings, actions, OHLCV, FX, liquidity."
+  paper_trading_ready: "Serious research data plus execution/TCA and monitoring."
+  excluded_from_default_universe: "Source capability is retained, but the market is excluded from default research and production universes."
+
+sources:
+  malaysia_bursa:
+    region: ASEAN
+    tier: discovery
+    listing_status: pending_adapter_or_vendor
+    price_status: curated_yahoo_basket_only
+    blockers:
+      - full_bursa_security_master
+      - delistings
+      - corporate_actions
+      - adjusted_ohlcv_vendor
+    next_action: "Add Bursa source/vendor adapter before full Malaysia claims."
+
+  singapore_sgx:
+    region: ASEAN
+    tier: smoke_test
+    listing_status: active_adapter
+    price_status: yahoo_smoke_test_works_for_liquid_names
+    blockers:
+      - corporate_actions
+      - full_adjusted_history
+    next_action: "Keep SGX listing adapter; add vendor-backed adjusted OHLCV."
+
+  thailand_set:
+    region: ASEAN
+    tier: excluded_from_default_universe
+    listing_status: parser_exists_fetch_blocked_in_some_environments
+    price_status: vendor_needed
+    blockers:
+      - reliable_fetch
+      - historical_ohlcv
+      - corporate_actions
+    next_action: "Park outside the current three-country research universe; revisit only if the tradable market scope expands."
+
+  indonesia_idx:
+    region: ASEAN
+    tier: discovery
+    listing_status: public_fetch_challenged
+    price_status: vendor_needed
+    blockers:
+      - security_master
+      - historical_ohlcv
+      - delistings
+    next_action: "Add vendor-backed IDX security master and OHLCV."
+
+  philippines_pse:
+    region: ASEAN
+    tier: excluded_from_default_universe
+    listing_status: active_adapter
+    price_status: yahoo_weak
+    blockers:
+      - usable_ohlcv
+      - corporate_actions
+      - delistings
+    next_action: "Do not include in default ASEAN research/backtests because this market is not tradable for us."
+
+  vietnam_hnx_upcom:
+    region: ASEAN
+    tier: excluded_from_default_universe
+    listing_status: active_adapter
+    price_status: yahoo_weak
+    blockers:
+      - usable_ohlcv
+      - corporate_actions
+      - delistings
+    next_action: "Do not include in default ASEAN research/backtests."
+
+  vietnam_hose:
+    region: ASEAN
+    tier: excluded_from_default_universe
+    listing_status: pending_adapter_or_vendor
+    price_status: vendor_needed
+    blockers:
+      - stable_security_master
+      - historical_ohlcv
+    next_action: "Do not include in default ASEAN research/backtests."
+
+  china_sse_szse:
+    region: North Asia
+    tier: excluded_from_project_scope
+    listing_status: active_adapter
+    price_status: yahoo_sse_smoke_test_only
+    blockers:
+      - adjusted_ohlcv
+      - delistings
+      - corporate_actions
+    next_action: "No active extraction or research work. Retain source capability only to read historical audit artifacts."
+
+  hong_kong_hkex:
+    region: North Asia
+    tier: discovery
+    listing_status: active_adapter
+    price_status: yahoo_or_vendor_needed
+    blockers:
+      - full_historical_ohlcv
+      - corporate_actions
+    next_action: "Add vendor/Stooq/Yahoo smoke path and paid-source option."
+
+  japan_jpx:
+    region: North Asia
+    tier: institutional_build
+    listing_status: refinitiv_current_complete_jquants_history_planned
+    price_status: refinitiv_ohlcv_queued_after_g1
+    blockers:
+      - jquants_credentials
+      - jquants_listed_info_4739_date_backfill
+      - jquants_listed_shares_9478_row_backfill
+      - independent_g1_pit_materialization_and_validation
+      - comprehensive_corporate_actions_sftp_or_snowflake
+      - adjusted_unadjusted_handling
+      - dividends
+    next_action: "Authenticate J-Quants through environment variables, drain bounded official plans, then materialize and independently validate G1 before OHLCV."
+
+  korea_krx:
+    region: North Asia
+    tier: discovery
+    listing_status: active_adapter_suffix_mapping_fixed
+    price_status: krx_or_vendor_needed
+    blockers:
+      - delisted_issues
+      - historical_prices
+    next_action: "Add KRX data portal/vendor adapter and delisted-issue history."
+
+  taiwan_twse_tpex:
+    region: North Asia
+    tier: excluded_from_project_scope
+    listing_status: active_adapter
+    price_status: official_crawler_needed
+    blockers:
+      - historical_ohlcv_adapter
+      - ex_right_dividend_actions
+    next_action: "No active extraction or research work. Retain source capability only to read historical audit artifacts."
+
+  us_common_stocks:
+    region: US
+    tier: discovery
+    listing_status: nasdaq_trader_current_snapshot
+    price_status: yahoo_smoke_test
+    blockers:
+      - point_in_time_security_master
+      - delistings
+      - corporate_actions
+      - permanent_id
+    next_action: "Add CRSP/Sharadar/Polygon-style point-in-time vendor adapter."
+
+  global_etf_proxies:
+    region: Global
+    tier: smoke_test
+    listing_status: curated_proxy_universe
+    price_status: yahoo_smoke_test
+    blockers:
+      - benchmark_metadata
+      - constituent_history_if_used_for_decomposition
+    next_action: "Maintain as tradable benchmark/proxy panel."

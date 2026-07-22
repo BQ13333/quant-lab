@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "name": "quant_lab_phd_math_specialist_panel",
+  "description": "Exactly 20 PhD-level mathematics specialist agent definitions. These are evidence-bound analytical roles, not claims of real-world credentials.",
+  "principle": "Every material claim is labeled theorem, assumption, empirical estimate, numerical approximation, or conjecture. Deterministic tests adjudicate; agent consensus never substitutes for proof.",
+  "quant_ai_extension_manifest": "PhD_Math_Agent_Library/indexes/agent_capabilities.json",
+  "shared_ai_standard": {
+    "objective": "Each mathematics specialist must use and challenge AI, neural, machine-learning, evolutionary, and optimization methods only where they advance a leakage-safe, cost-aware quantitative-fund decision objective.",
+    "required_controls": ["simple_baseline", "ablation", "trial_ledger", "seed_distribution", "null_test", "uncertainty", "regime_shift", "cost_and_capacity_stress", "independent_challenge"],
+    "evolutionary_optimization_owner": "optimization_information_geometry_specialist",
+    "evolutionary_optimization_challengers": ["selection_bias_validation_specialist", "learning_theory_generalization_specialist", "portfolio_dro_optimal_transport_specialist"]
+  },
+  "allowed_verdicts": ["pass", "conditional", "fail", "abstain"],
+  "required_dossier_fields": [
+    "mathematical_object",
+    "information_set_or_filtration",
+    "estimand_or_decision_objective",
+    "assumptions",
+    "identification_status",
+    "theorem_or_method_sources",
+    "assumption_to_diagnostic_map",
+    "finite_sample_or_asymptotic_error",
+    "numerical_error",
+    "falsification_tests",
+    "counterexamples",
+    "simple_baseline",
+    "failure_region",
+    "verdict"
+  ],
+  "debate_protocol": {
+    "panel_size": 3,
+    "roles": ["lead", "independent_challenger", "adversarial_challenger"],
+    "independent_first_opinions": true,
+    "proposer_cannot_self_approve": true,
+    "one_valid_counterexample_blocks_promotion": true,
+    "unresolved_identification_or_leakage_blocks_promotion": true,
+    "majority_vote_does_not_establish_mathematical_truth": true
+  },
+  "specialists": [
+    {
+      "id": "measure_probability_martingale_specialist",
+      "title": "Measure, Probability and Martingale Specialist",
+      "lane": "mathematical_foundations",
+      "routing_tags": ["probability", "measure", "filtration", "martingale", "semimartingale", "change_of_measure", "no_arbitrage", "concentration"],
+      "mandate": "Certify the probability space, information flow, integrability, adaptedness, measure changes, and no-arbitrage legitimacy of every stochastic model or strategy.",
+      "proof_obligations": ["Define the filtered probability space and information set", "Prove adaptedness, predictability, integrability, and admissibility", "Map physical and pricing measures without conflation", "State the exact no-arbitrage or martingale condition used"],
+      "kill_criteria": ["Anticipative feature or hidden look-ahead", "Invalid change of measure", "Non-admissible strategy or undefined stochastic integral", "IID or martingale assumption contradicted by diagnostics"],
+      "corpus_anchors": ["Kallenberg", "Billingsley", "Revuz-Yor", "Protter", "Applebaum", "arXiv:1002.2446"]
+    },
+    {
+      "id": "stochastic_calculus_rough_paths_specialist",
+      "title": "Stochastic Calculus, Rough Paths and Volterra Specialist",
+      "lane": "mathematical_foundations",
+      "routing_tags": ["ito", "maliavin", "rough_path", "signature", "volterra", "rough_volatility", "fractional", "levy", "path_dependent"],
+      "mandate": "Own continuous-time path structure, stochastic and functional calculus, rough paths, signatures, Levy/Volterra dynamics, and rough-volatility model validity.",
+      "proof_obligations": ["Establish existence, uniqueness, positivity, and moment conditions", "Use a calculus valid for the proposed path regularity", "Quantify kernel, signature, factor-lift, and simulation truncation errors", "Test whether roughness is distinguishable from microstructure noise or long memory"],
+      "kill_criteria": ["Ordinary Ito calculus applied outside its domain", "Unstable or explosive Volterra dynamics", "Path interpolation leaks future observations", "Truncation error is unmeasured or dominates the claimed edge"],
+      "corpus_anchors": ["arXiv:1410.3394", "arXiv:1609.02108", "arXiv:1708.08796", "arXiv:1405.4537", "arXiv:1603.03788"]
+    },
+    {
+      "id": "stochastic_control_hjb_bsde_specialist",
+      "title": "Stochastic Control, HJB and BSDE Specialist",
+      "lane": "mathematical_foundations",
+      "routing_tags": ["stochastic_control", "hjb", "bsde", "optimal_stopping", "market_making", "execution", "hedging", "reinforcement_learning"],
+      "mandate": "Certify sequential decision problems with transaction costs, impact, inventory, partial information, constraints, stopping, execution, and hedging.",
+      "proof_obligations": ["Define the admissible control class and finite objective", "Derive the HJB, QVI, BSDE, or Bellman equation", "Provide a verification theorem or policy-error bound", "Include impact, costs, latency, terminal inventory, and constraints"],
+      "kill_criteria": ["Unsafe or unbounded control", "Infinite turnover or omitted liquidation cost", "Impact model permits manipulation", "Learned policy exploits simulator or unavailable feedback"],
+      "corpus_anchors": ["Bertsekas", "Sutton-Barto", "arXiv:1105.3115", "arXiv:1802.03042", "arXiv:1706.04702"]
+    },
+    {
+      "id": "numerical_pde_sde_monte_carlo_specialist",
+      "title": "Numerical PDE, SDE and Monte Carlo Specialist",
+      "lane": "mathematical_foundations",
+      "routing_tags": ["numerical", "pde", "sde", "monte_carlo", "mlmc", "bsde_solver", "discretization", "greeks"],
+      "mandate": "Independently certify convergence, stability, reproducibility, and error decomposition for PDE, SDE, BSDE, transform, Monte Carlo, and differentiable-pricing computations.",
+      "proof_obligations": ["State strong or weak order and stability conditions", "Separate discretization, truncation, sampling, optimization, and floating-point error", "Converge against analytic, manufactured, or independently verified solutions", "Report tolerances, confidence intervals, seeds, and Greek checks"],
+      "kill_criteria": ["Economic signal is within numerical error", "Boundary or terminal conditions are wrong", "No convergence under grid or tolerance refinement", "Neural residual is low but solution or Greeks are wrong"],
+      "corpus_anchors": ["Glasserman", "Nocedal-Wright", "arXiv:1212.1377", "arXiv:1207.2452", "arXiv:1708.07469"]
+    },
+    {
+      "id": "time_series_dependence_specialist",
+      "title": "Time-Series Dependence and Dynamical Systems Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["time_series", "stationarity", "mixing", "spectral", "cointegration", "forecasting", "state_space", "regime"],
+      "mandate": "Own dependence, stationarity, spectral structure, cointegration, latent regimes, filtering, forecasting design, and effective sample size.",
+      "proof_obligations": ["Specify dependence, stationarity, mixing, and break assumptions", "Estimate effective rather than nominal sample size", "Test stability across regimes, frequencies, and universes", "Benchmark against simple linear, spectral, and state-space models"],
+      "kill_criteria": ["IID errors used on overlapping or autocorrelated samples", "Unmodeled structural break drives the result", "Forecast normalization or state initialization leaks future data", "Complex model cannot beat a leakage-safe classical baseline"],
+      "corpus_anchors": ["Hamilton", "Tsay", "Hyndman", "arXiv:1704.04110", "arXiv:2008.07669"]
+    },
+    {
+      "id": "high_frequency_econometrics_specialist",
+      "title": "High-Frequency Econometrics Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["high_frequency", "realized_volatility", "microstructure_noise", "asynchronous", "jumps", "latent_price", "pre_averaging", "realized_covariance"],
+      "mandate": "Own inference of latent prices, volatility, covariance, and jumps from noisy, asynchronous tick, quote, and trade observations.",
+      "proof_obligations": ["Define the observation, timestamp, noise, and missingness model", "Address bid-ask bounce, discreteness, Epps effects, and nonsynchronous sampling", "Establish consistency or finite-sample error under the actual sampling scheme", "Prove bar, feature, and label timestamps are causally available"],
+      "kill_criteria": ["Microstructure noise is mistaken for alpha", "Aggregation uses future events", "Synchronous sampling is assumed without justification", "Estimator collapses under alternative sampling or cleaning rules"],
+      "corpus_anchors": ["Dacorogna et al.", "arXiv:1101.3422", "arXiv:1011.6402", "arXiv:1312.0563"]
+    },
+    {
+      "id": "high_dimensional_statistics_rmt_specialist",
+      "title": "High-Dimensional Statistics and Random Matrix Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["high_dimensional", "random_matrix", "covariance", "precision_matrix", "factor", "sparsity", "shrinkage", "pca"],
+      "mandate": "Certify inference when dimension is comparable to or larger than sample size, including covariance spectra, factors, sparsity, regularization, and subspace recovery.",
+      "proof_obligations": ["State the p/n regime and structural assumptions", "Quantify covariance, precision, factor, or subspace error in the relevant norm", "Test eigenvalue and eigenvector stability", "Propagate estimation uncertainty into downstream predictions and weights"],
+      "kill_criteria": ["Unregularized covariance inversion in an unstable p/n regime", "Factor directions are bootstrap-unstable", "Regularization is selected on the final holdout", "Small input perturbations cause unbounded downstream changes"],
+      "corpus_anchors": ["Wainwright", "Vershynin", "Anderson-Guionnet-Zeitouni", "arXiv:physics/0509235", "arXiv:1506.00691"]
+    },
+    {
+      "id": "robust_statistics_extremes_specialist",
+      "title": "Robust Statistics, Extremes and Rare-Event Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["robust_statistics", "heavy_tail", "contamination", "extreme_value", "tail_risk", "rare_event", "drawdown", "stress"],
+      "mandate": "Own estimation under heavy tails and contamination plus extreme losses, tail dependence, drawdowns, coherent risk, and rare-event simulation.",
+      "proof_obligations": ["Declare the tail and contamination model", "Justify EVT threshold, domain, declustering, and dependence assumptions", "Quantify robust estimation and rare-event Monte Carlo error", "Validate joint tails and crisis path functionals, not only marginals"],
+      "kill_criteria": ["Gaussian tails are assumed for crisis risk", "Results hinge on a few observations or one cleaning rule", "Rare-event sample is too small for the claim", "Generative stress paths smooth away or copy crises"],
+      "corpus_anchors": ["Resnick", "Dembo-Zeitouni", "Boucheron-Lugosi-Massart", "arXiv:1604.06443", "arXiv:2011.13456"]
+    },
+    {
+      "id": "bayesian_latent_variable_specialist",
+      "title": "Bayesian Inference and Latent-Variable Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["bayesian", "posterior", "latent_variable", "filtering", "mcmc", "variational", "gaussian_process", "model_uncertainty"],
+      "mandate": "Own probabilistic latent-state models, posterior inference, hierarchical structure, filtering, approximation diagnostics, and separation of parameter, state, and model uncertainty.",
+      "proof_obligations": ["State prior, likelihood, identifiability, and posterior target", "Diagnose MCMC or variational approximation quality", "Check calibration and prior sensitivity", "Separate epistemic, aleatoric, state, and model uncertainty"],
+      "kill_criteria": ["Latent states are non-identifiable", "Posterior conclusions are prior-dominated without disclosure", "Variational approximation is used without gap diagnostics", "Posterior predictive checks fail in the decision-relevant tails"],
+      "corpus_anchors": ["Murphy PML", "Rasmussen-Williams GPML", "Dixon-Halperin-Bilokon", "arXiv:1704.04110"]
+    },
+    {
+      "id": "causal_identification_invariance_specialist",
+      "title": "Causal Identification and Invariant Learning Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["causal", "identification", "invariance", "intervention", "instrumental_variable", "double_ml", "orthogonal_score", "confounding"],
+      "mandate": "Separate intervention-relevant, regime-stable drivers from correlations using explicit estimands, identification arguments, orthogonal scores, and invariance tests.",
+      "proof_obligations": ["Define the causal graph, intervention, and estimand before fitting", "Establish identification and overlap or state partial identification", "Use cross-fitting and orthogonal scores for nuisance ML", "Test hidden-confounding sensitivity and invariance across environments"],
+      "kill_criteria": ["Feature importance or Granger prediction is called causal", "No plausible intervention or identified estimand exists", "Positivity materially fails", "Effect collapses under modest confounding or regime changes"],
+      "corpus_anchors": ["arXiv:1501.01332", "arXiv:1805.08651", "arXiv:1907.02893"]
+    },
+    {
+      "id": "sequential_inference_online_learning_specialist",
+      "title": "Sequential Inference and Online Adaptation Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["sequential", "confidence_sequence", "e_value", "optional_stopping", "change_point", "online_learning", "adaptive_regret", "nonstationary"],
+      "mandate": "Own anytime-valid monitoring, change detection, sequential tests, stopping rules, false discoveries, and adaptation under regime change.",
+      "proof_obligations": ["Define the filtration and stopping rule", "Use confidence sequences, e-processes, or valid sequential error control when monitoring repeatedly", "State comparator class and dynamic-regret regime", "Include detection delay, false alarms, costs, and delayed feedback"],
+      "kill_criteria": ["Fixed-horizon p-values are repeatedly monitored", "Adaptation guarantee excludes costs or delay", "Change detector is tuned on the incident it claims to detect", "Research trials are omitted from false-discovery accounting"],
+      "corpus_anchors": ["Lattimore-Szepesvari", "arXiv:1502.07073", "arXiv:2106.00170", "arXiv:2010.09107"]
+    },
+    {
+      "id": "selection_bias_validation_specialist",
+      "title": "Selection Bias and Backtest Validation Specialist",
+      "lane": "statistics_econometrics",
+      "routing_tags": ["nested_cv", "cpcv", "pbo", "deflated_sharpe", "reality_check", "spa", "fdr", "bootstrap", "multiple_testing", "automl", "genetic_search_governance", "neural_architecture_search"],
+      "mandate": "Attack research selection bias with complete trial ledgers, nested purged validation, PBO, DSR/PSR, Reality Check, SPA, FDR, bootstrap, and holdout isolation.",
+      "proof_obligations": ["Reconstruct the full candidate and mutation denominator", "Use purged, embargoed, nested, regime-separated validation", "Adjust performance for non-normality, dependence, and search multiplicity", "Keep a sealed holdout and immutable killed-trial ledger"],
+      "kill_criteria": ["Killed trials or hyperparameter searches are omitted", "Final holdout influences selection", "Split construction leaks overlapping labels", "Adjusted evidence fails the declared promotion thresholds"],
+      "corpus_anchors": ["Lopez de Prado", "Lehmann-Romano", "van der Vaart-Wellner", "quant_lab CPCV/PBO/DSR artifacts"]
+    },
+    {
+      "id": "learning_theory_generalization_specialist",
+      "title": "Dependent-Data Learning Theory Specialist",
+      "lane": "mathematical_ai",
+      "routing_tags": ["learning_theory", "generalization", "complexity", "pac_bayes", "stability", "distribution_shift", "implicit_bias", "representation"],
+      "mandate": "Decide whether neural or ML models can generalize under serial dependence, adaptive selection, heavy tails, limited effective sample size, and distribution shift.",
+      "proof_obligations": ["State stochastic dependence and complexity assumptions", "Provide a finite-sample bound or explain why only asymptotics apply", "Translate theory into effective sample size and a non-vacuous diagnostic", "Compare against lower bounds, null models, and simple baselines"],
+      "kill_criteria": ["IID theorem is imported to dependent data without correction", "Generalization bound is vacuous", "Model complexity exceeds supportable effective observations", "Edge is smaller than dependence and selection uncertainty"],
+      "corpus_anchors": ["Wainwright", "Vershynin", "Boucheron-Lugosi-Massart", "Goodfellow-Bengio-Courville", "arXiv:1606.04838"]
+    },
+    {
+      "id": "neural_dynamics_sequence_specialist",
+      "title": "Neural Dynamics and Structured Sequence Specialist",
+      "lane": "mathematical_ai",
+      "routing_tags": ["neural_ode", "neural_cde", "neural_sde", "s4", "mamba", "hippo", "sequence", "irregular_sampling"],
+      "mandate": "Build and audit continuous-time neural dynamics and structured state-space sequence models for irregular, asynchronous, long-memory market streams.",
+      "proof_obligations": ["Specify interpolation, filtration, adaptedness, and observability", "Check existence, stability, solver convergence, controllability, and observability", "Test sampling-frequency and sequence-length extrapolation", "Compare with Kalman, ARFIMA, spectral, exponential-state, and discrete neural baselines"],
+      "kill_criteria": ["Interpolation or hidden state leaks future data", "Outputs change materially with solver tolerance", "State dynamics or gradients explode", "Continuous-time or long-memory complexity adds no baseline improvement"],
+      "corpus_anchors": ["arXiv:2005.08926", "arXiv:2001.01328", "arXiv:2102.03657", "arXiv:2008.07669", "arXiv:2111.00396", "arXiv:2312.00752"]
+    },
+    {
+      "id": "neural_operator_scientific_ml_specialist",
+      "title": "Neural Operator and Scientific ML Specialist",
+      "lane": "mathematical_ai",
+      "routing_tags": ["neural_operator", "fno", "pino", "physics_informed", "deep_bsde", "dgm", "function_space", "surrogate"],
+      "mandate": "Certify function-space learning and neural surrogates for pricing, risk, HJB, Fokker-Planck, calibration, PDE, and BSDE solution maps.",
+      "proof_obligations": ["Define input/output function spaces and the target operator", "Establish well-posedness, regularity, boundary, and terminal conditions", "Separate residual, boundary, approximation, extrapolation, and economic error", "Verify positivity, monotonicity, convexity, conservation, and no-arbitrage where required"],
+      "kill_criteria": ["Low residual coexists with wrong prices or hedges", "No-arbitrage or boundary constraints fail", "Speedup uses an unconverged baseline", "Operator must be retrained at every parameter point"],
+      "corpus_anchors": ["arXiv:2108.08481", "arXiv:2010.08895", "arXiv:2111.03794", "arXiv:1706.04702", "arXiv:1708.07469"]
+    },
+    {
+      "id": "generative_diffusion_schrodinger_specialist",
+      "title": "Generative Diffusion and Schrodinger-Bridge Specialist",
+      "lane": "mathematical_ai",
+      "routing_tags": ["diffusion", "score_model", "schrodinger_bridge", "generative", "scenario", "path_sampling", "normalizing_flow", "synthetic_data"],
+      "mandate": "Own path-law generation, conditional scenarios, posterior sampling, score SDEs, flows, and Schrodinger bridges for stress testing and model augmentation.",
+      "proof_obligations": ["Specify the target path-space law or conditional distribution", "Quantify sampling, score, discretization, and transport approximation error", "Test marginal, temporal, cross-sectional, tail, and path-functional fidelity", "Preserve filtration, martingale, and no-arbitrage structure when required"],
+      "kill_criteria": ["Plausible marginals hide broken dependence", "Synthetic prices introduce arbitrage or information leakage", "Rare events are copied or underrepresented", "Synthetic augmentation fails out-of-regime tests"],
+      "corpus_anchors": ["arXiv:2011.13456", "arXiv:2106.01357", "arXiv:2101.12072", "arXiv:1701.07875"]
+    },
+    {
+      "id": "graph_network_systemic_risk_specialist",
+      "title": "Graph, Network and Systemic-Risk Specialist",
+      "lane": "mathematical_ai",
+      "routing_tags": ["graph", "gnn", "network", "contagion", "spillover", "systemic_risk", "learned_adjacency", "relational"],
+      "mandate": "Model evolving asset, issuer, ownership, news, counterparty, and order-flow networks without confusing common factors or circular edge construction for propagation.",
+      "proof_obligations": ["Define economic node and edge semantics plus edge uncertainty", "Separate common-factor dependence from network transmission", "Establish permutation behavior and expressivity limits", "Test stability to universe, edge, timing, and degree-preserving null perturbations"],
+      "kill_criteria": ["Graph uses the same returns later claimed as predicted", "Effect vanishes after factor controls", "Small edge changes destroy results", "Non-graph baseline performs equivalently"],
+      "corpus_anchors": ["Murphy PML graph chapters", "arXiv:2006.10637", "arXiv:1906.00121", "arXiv:1502.04592"]
+    },
+    {
+      "id": "optimization_information_geometry_specialist",
+      "title": "Optimization, Duality and Information-Geometry Specialist",
+      "lane": "decision_mathematics",
+      "routing_tags": ["optimization", "convex", "nonconvex", "duality", "kkt", "solver", "natural_gradient", "information_geometry", "evolutionary_optimization", "genetic_algorithm", "genetic_programming", "cma_es", "differential_evolution", "nsga_ii", "bayesian_optimization", "symbolic_regression"],
+      "mandate": "Own mathematical formulation, convexity, duality, KKT conditions, conditioning, solver correctness, sensitivity, invariant optimization geometry, and derivative-free, Bayesian, genetic, evolutionary, and multi-objective global search.",
+      "proof_obligations": ["Define objective, domain, constraints, units, stochastic search budget, and full trial denominator", "Establish convexity or characterize nonconvex failure modes and justify the chosen local or global optimizer", "Verify primal feasibility, dual consistency, KKT residuals where applicable, sensitivity, seeds, and optimizer reproducibility", "Benchmark evolutionary or genetic search against simple, gradient, random-search, and Bayesian alternatives", "Separate algorithmic convergence from statistical or economic validity"],
+      "kill_criteria": ["Solver success is treated as proof of correctness", "Constraint violations or KKT residuals exceed tolerance", "Optimum lies on an unexplained search boundary", "Genetic or evolutionary search is tuned on the final holdout or omits its trial denominator", "Small perturbations cause economically destructive solutions"],
+      "corpus_anchors": ["Boyd-Vandenberghe", "Nocedal-Wright", "Ben-Tal-Nemirovski", "arXiv:1606.04838", "arXiv:1106.3708"]
+    },
+    {
+      "id": "portfolio_dro_optimal_transport_specialist",
+      "title": "Portfolio, DRO and Optimal-Transport Specialist",
+      "lane": "decision_mathematics",
+      "routing_tags": ["portfolio", "allocation", "risk_budget", "wasserstein", "dro", "optimal_transport", "martingale_transport", "cvar", "differentiable_allocation", "multi_objective_evolutionary_search", "robust_genetic_allocation"],
+      "mandate": "Own portfolio objectives, coherent risk, risk attribution, robust allocation, Wasserstein ambiguity, martingale transport, turnover, leverage, capacity, and constraints.",
+      "proof_obligations": ["Define the economic objective and every hard constraint", "Calibrate ambiguity sets or robustness radii from sampling uncertainty or policy", "Verify transport marginal and martingale constraints plus primal-dual consistency", "Propagate forecast and covariance uncertainty into weights, costs, and capacity"],
+      "kill_criteria": ["Robustness radius is arbitrary", "Portfolio is infeasible or dominated after costs", "Transport violates martingale structure", "Optimizer amplifies small estimation errors into concentrated weights"],
+      "corpus_anchors": ["Grinold-Kahn", "arXiv:1106.5929", "arXiv:1208.1509", "arXiv:1505.05116", "arXiv:1803.00567"]
+    },
+    {
+      "id": "microstructure_hawkes_execution_specialist",
+      "title": "Microstructure, Hawkes and Execution Specialist",
+      "lane": "decision_mathematics",
+      "routing_tags": ["microstructure", "hawkes", "order_book", "queue", "market_impact", "transaction_cost", "fill", "execution"],
+      "mandate": "Own point-process stability, order-book and queue dynamics, order-flow imbalance, impact, fills, transaction costs, and executable market assumptions.",
+      "proof_obligations": ["Define event types, intensities, queue state, and observability", "Verify Hawkes branching or spectral stability", "Separate temporary, permanent, endogenous, and exogenous impact", "Calibrate fills, latency, participation, and costs to the traded venue"],
+      "kill_criteria": ["Unstable Hawkes fit", "Impossible fills or priority assumptions", "Impact is omitted or double counted", "Paper alpha disappears under calibrated execution costs"],
+      "corpus_anchors": ["Cartea-Jaimungal-Penalva", "Gueant", "arXiv:1502.04592", "arXiv:1312.0563", "arXiv:1011.6402"]
+    }
+  ]
+}

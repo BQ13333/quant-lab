@@ -1,0 +1,30 @@
+{
+  "source_root": "/path/to/authorized-markdown-library",
+  "allowed_globs": [
+    "specialists/**/*.md",
+    "controls/**/*.md"
+  ],
+  "cloud_allowed_globs": [
+    "specialists/public/*.md",
+    "specialists/public/**/*.md",
+    "controls/public/*.md",
+    "controls/public/**/*.md"
+  ],
+  "deny_terms": [
+    "confidential",
+    "restricted",
+    "LSEG",
+    "Refinitiv",
+    "Reuters"
+  ],
+  "database_path": ".quant-lab-rag/knowledge.sqlite3",
+  "manifest_path": ".quant-lab-rag/manifest.json",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "embedding_cache": ".quant-lab-rag/model-cache",
+  "cerebras_model": "gpt-oss-120b",
+  "keychain_account": "quant-lab-cerebras",
+  "keychain_service": "ai.cerebras.api-key",
+  "max_file_bytes": 1048576,
+  "max_chunk_chars": 3600,
+  "chunk_overlap_chars": 400
+}

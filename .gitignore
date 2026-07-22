@@ -1,0 +1,50 @@
+.env
+.env.*
+!.env.example
+lseg-data.config.json
+refinitiv*.json
+lseg*.log
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local runtimes and caches
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+**/__pycache__/
+*.py[cod]
+
+# Generated research, experiment, and run output
+artifacts/
+vault/30_experiments/
+.supergoal/
+tmp/
+temp/
+logs/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# User-supplied corpora and licensed data
+private_data/
+private_corpus/
+licensed_data/
+.quant-lab-rag/
+integrations/cerebras_rag/config.json
+
+# Local editor and operating-system state
+.DS_Store
+.idea/
+.vscode/
+
+# Additional credential/config patterns
+*.env
+!.env.example
+credentials*.json
+secrets*.json
+*.token

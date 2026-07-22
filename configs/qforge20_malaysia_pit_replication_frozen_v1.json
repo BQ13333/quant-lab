@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "workflow_name": "QForge-20",
+  "protocol_id": "QFORGE20-MYS-PIT-REPLICATION-14-FROZEN-V1",
+  "status": "human_frozen_pending_data_admissibility_and_twenty_role_review",
+  "market": "Malaysia",
+  "exchange": "Bursa Malaysia",
+  "research_cutoff": "2026-07-06",
+  "purpose": "Replicate the exact fourteen registered Malaysia strategies on a point-in-time denominator and production adjusted returns without parameter optimization, then stop after the paired evaluation.",
+  "human_freeze_approval": {
+    "approved": true,
+    "approved_on": "2026-07-13",
+    "approval_text": "Pause fundamentals and unsupported data lanes. Proceed with a frozen, no-optimization Malaysia PIT replication of the fourteen existing strategies. Stop after the paired evaluation and do not start a dry run."
+  },
+  "paused_lanes": [
+    "fundamentals_and_accounting_factors",
+    "pairs_and_historical_borrow",
+    "tick_and_order_book_microstructure",
+    "options_and_derivatives",
+    "unsupported_alternative_data"
+  ],
+  "source_identity": {
+    "atomic_registry_path": "src/quant_lab/research/malaysia_strategy_registry.py",
+    "atomic_registry_sha256": "cb7ecee9547899386d3faa7d606ba9213a88540531f2c69fbe1aac97e71cc4a2",
+    "next_cohort_protocol_path": "artifacts/qforge20/QFORGE20-MALAYSIA-RESEARCH-V1/next_cohort_prereg_draft02/materialized_protocol.json",
+    "next_cohort_protocol_file_sha256": "1d913e4301f6fb03dfc1b12de478c87c87b4c653fe0bb0b6ead85854683adaed",
+    "specialist_roster_path": "configs/phd_math_specialists.json",
+    "specialist_roster_sha256": "f83d794ddaee52de207b1b80f520def6eb73e31f38af2908809cd9ee660f2a70"
+  },
+  "strategies": [
+    {"sequence": 1, "strategy_id": "MYS-S-LOWVOL-126", "family": "low_volatility", "spec_sha256": "bce6545fc3b0c0be98e4bf04e1f6fff117927ccce1d60f0824d3c6166d792f10"},
+    {"sequence": 2, "strategy_id": "MYS-S-MOMENTUM-126", "family": "momentum", "spec_sha256": "d4a80ce40df83b8660f4d7f0bcf6ecf0098a1bbf417191a0a31ae57b760a6022"},
+    {"sequence": 3, "strategy_id": "MYS-S-VAM-126-63", "family": "volatility_adjusted_momentum", "spec_sha256": "ef5ce734f10f56186f8a76ff59cb52c4584b1f51e419d5f86f7dd0bd8872042f"},
+    {"sequence": 4, "strategy_id": "MYS-S-TSMOM-126", "family": "time_series_momentum", "spec_sha256": "427cfb27a35904e7ab8013c2bf15386da4a6f4dad8ce2e271d729a267c6cdca2"},
+    {"sequence": 5, "strategy_id": "MYS-S-EWMAC-16-64", "family": "ewmac", "spec_sha256": "ce8ee5c42093846350dc84d9d46c144f0e28c5e9194f46965eaa46c43112f555"},
+    {"sequence": 6, "strategy_id": "MYS-S-BREAKOUT-55", "family": "breakout", "spec_sha256": "90a73659f1550a3d6bdb77933eedd52b8b82e8de6b2b315996b8d2739f068d81"},
+    {"sequence": 7, "strategy_id": "MYS-S-CHANNEL-55", "family": "channel_position", "spec_sha256": "838eeec9c59d1f544d60baf93f953415f232a56d00acace8e33889a30ab59701"},
+    {"sequence": 8, "strategy_id": "MYS-S-RESIDMOM-126", "family": "residual_momentum", "spec_sha256": "743e5a272845ebd9b35714b9b49eb996646cd5fa1413456fb92ac3d1ecd4bda9"},
+    {"sequence": 9, "strategy_id": "MYS-S-MEANREV-63", "family": "mean_reversion", "spec_sha256": "fc0a1023bfac577e662148305322e54d8a9479c4acddfe9d6f854f06a77fda27"},
+    {"sequence": 10, "strategy_id": "MYS-S-BOLLREV-63", "family": "bollinger_reversion", "spec_sha256": "0387842c97bcd921c10c0cd56060dbbee410d9812fbe7f313673e7323ff137ad"},
+    {"sequence": 11, "strategy_id": "MYS-S-NEXT-PVCONF-21-60", "family": "price_volume_interaction", "spec_sha256": "1a486fa7699d98790289865ae9029d2b8fc9cfb60273447d9fd418469f0aaef9"},
+    {"sequence": 12, "strategy_id": "MYS-S-NEXT-ILLIQ-60", "family": "liquidity_premium", "spec_sha256": "639fe80dca8f38d422d9e92d48dcca5286a46801dd1d5951ccb1a69540236757"},
+    {"sequence": 13, "strategy_id": "MYS-S-NEXT-TOM-L1-F3", "family": "calendar_seasonality", "spec_sha256": "3b76bdd45c0a42adfa349c8f8fb02708159d4f3c22e9db5a10f67d9d084f0d2a"},
+    {"sequence": 14, "strategy_id": "MYS-S-NEXT-GAPREV-X20", "family": "overnight_intraday_decomposition", "spec_sha256": "a0069aca03c99fe25c5d5ae64a568939e056c843a01ea337bcae373a2d7212ad"}
+  ],
+  "data_receipts": {
+    "institutional_scorecard": {"path": "artifacts/institutional_data_quality/DATA-QUALITY-LOOP-MYS-SGP-IDN-U2-20260708/manifest.json", "sha256": "580caf6beac32a9c507b764d9f0de9c004202e8eaeecb8cd3bdfee3ab361ef61"},
+    "historical_security_master_manifest": {"path": "artifacts/data_lake/pit/security_master_history/MYS-SGP-IDN-U2-20260708/manifest.json", "sha256": "3cc4b4ae0a36903f50939692f90d34805fdd256d8d202667c9bb1b51d8fa8a0e"},
+    "listing_windows": {"path": "artifacts/data_lake/pit/security_master_history/MYS-SGP-IDN-U2-20260708/listing_windows.parquet", "sha256": "275f74baa23ddbad8e0eecec5f95824d5c9929238c9cbd3e0cc29b193d359d39"},
+    "universe_membership": {"path": "artifacts/data_lake/pit/security_master_history/MYS-SGP-IDN-U2-20260708/universe_membership_pit.parquet", "sha256": "6dbe47f32cc11b72a35f6a6a211e962eb87c3afec6ec338ba42a2db15855672e"},
+    "security_master_promotion_gates": {"path": "artifacts/data_lake/pit/security_master_history/MYS-SGP-IDN-U2-20260708/promotion_gates.csv", "sha256": "9c9565da166e81b1242763967d1a806994d9bfe13fafacfabb0c30df64f1f09f"},
+    "adjusted_return_manifest": {"path": "artifacts/adjusted_return_reconstruction/ADJRET-RECON-MYS-SGP-IDN-U2-20260708/manifest.json", "sha256": "ba239a792c89761f8c783bae0e00c98e43b84433e337e6c7fa881973d426299a"},
+    "daily_adjusted_returns": {"path": "artifacts/adjusted_return_reconstruction/ADJRET-RECON-MYS-SGP-IDN-U2-20260708/daily_adjusted_returns.parquet", "sha256": "3bd5bcdf91420e8e4882381ebe127fdc83ffb1512c1c0da49750354c8c012e0a"},
+    "current_security_master": {"path": "artifacts/codex_backtests/CODEX_ASEAN_L2_DEEP_20260707/05_l2_deep_extraction/ASEAN-L2-DEEP-MYS-SGP-IDN-20260708/security_master_current_survivor.csv", "sha256": "0bbb2644049f95ea3d50b189bd5957cdbbbd053b8ef8d8c41381942501045d95"},
+    "eligible_universe_tiers": {"path": "artifacts/codex_backtests/CODEX_ASEAN_L2_DEEP_20260707/05_l2_deep_extraction/ASEAN-L2-DEEP-MYS-SGP-IDN-20260708/eligible_universe_tiers.csv", "sha256": "513e7019eca995810daee668805d959bf07f0f6433700c4bf39250a39229a48c"},
+    "daily_features": {"path": "artifacts/codex_backtests/CODEX_ASEAN_L2_DEEP_20260707/05_l2_deep_extraction/ASEAN-L2-DEEP-MYS-SGP-IDN-20260708/daily_features.parquet", "sha256": "da6ecbe53a9e07e339b745406f308a2502659e3437e9782425ce54ec755b46bc"}
+  },
+  "admissibility_gates": {
+    "all_source_hashes_match": true,
+    "production_adjusted_returns_ready": true,
+    "historical_u2_membership_reconstructable": true,
+    "inactive_or_delisted_names_present": true,
+    "inactive_or_delisted_names_have_signal_inputs": true,
+    "inactive_or_delisted_names_have_adjusted_returns": true,
+    "minimum_dead_name_return_coverage": 0.95,
+    "security_master_promotion_gates_all_pass": true,
+    "no_current_survivor_only_denominator": true
+  },
+  "research_contract": {
+    "parameters_unchanged": true,
+    "signals_unchanged": true,
+    "directions_unchanged": true,
+    "rebalance_rules_unchanged": true,
+    "costs_unchanged": true,
+    "no_parameter_grid": true,
+    "no_sign_flip": true,
+    "no_post_hoc_combination": true,
+    "no_interim_performance_monitoring": true,
+    "all_fourteen_reserved_atomically_only_after_admissibility": true,
+    "all_fourteen_results_unsealed_together": true,
+    "multiplicity_method": "Holm_across_all_14_replications",
+    "selection_bias_method": "complete_Malaysia_lifetime_PBO_after_all_14_replications",
+    "paired_comparison": "same_strategy_current_survivor_evidence_versus_point_in_time_replication",
+    "paired_outputs": ["net_IR_delta", "maximum_drawdown_delta", "turnover_delta", "sign_stability", "factor_residual_delta", "capacity_delta", "survivorship_effect"],
+    "promotion_authorized": false
+  },
+  "twenty_role_review": {
+    "all_20_roles_required": true,
+    "route": "direct_deepseek_v4_pro_cloud_sanitized",
+    "reasoning_effort": "high",
+    "independent_role_contexts": true,
+    "majority_vote_is_not_evidence": true,
+    "deterministic_data_gate_overrides_model_opinion": true
+  },
+  "stopping_rules": {
+    "stop_if_any_admissibility_gate_fails": true,
+    "strategy_trials_reserved_on_failed_admissibility": false,
+    "stop_after_paired_evaluation": true,
+    "dry_run_authorized": false,
+    "live_execution_authorized": false,
+    "future_evaluation_release_authorized": false
+  }
+}
