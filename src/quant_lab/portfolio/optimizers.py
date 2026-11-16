@@ -332,7 +332,7 @@ def max_sharpe_shrinkage(
             continue
         cols = sub_rets.columns.tolist()
         mu = sub_rets.mean().values * 252
-        cov = sub_rets.cov().values
+        cov = sub_rets.cov().values * 252
         # Shrinkage to identity scaled by mean variance
         mean_var = np.trace(cov) / cov.shape[0]
         target = np.eye(cov.shape[0]) * mean_var
@@ -481,6 +481,10 @@ def turnover_constrained_optimizer(
     use_cvxpy: bool = True,
 ) -> pd.DataFrame:
     """Optimize new weights subject to turnover <= max_turnover from previous."""
+    if not np.isfinite(max_turnover) or max_turnover < 0:
+        raise ValueError("max_turnover must be finite and nonnegative")
+    if not np.isfinite(previous_weights.to_numpy()).all():
+        raise ValueError("previous holdings must be finite")
     # Start with equal-weight target for simplicity (or could use scores as target)
     target = equal_weight(scores)
     weights = pd.DataFrame(0.0, index=scores.index, columns=scores.columns)
@@ -504,7 +508,7 @@ def turnover_constrained_optimizer(
                 n = len(cols)
                 w = cp.Variable(n)
                 turnover = cp.norm(w - prev_vec, 1)
-                constraints = [cp.sum(w) == 1, w >= 0, turnover <= max_turnover]
+                constraints = [cp.sum(w) == 1, w >= 0, w <= 0.20, turnover <= max_turnover]
                 # Minimize distance to target
                 obj = cp.Minimize(cp.sum_squares(w - tgt_vec))
                 prob = cp.Problem(obj, constraints)
@@ -530,16 +534,14 @@ def turnover_constrained_optimizer(
             else:
                 scale = max_turnover / l1 if l1 > 0 else 0.0
                 w_vec = prev_vec + diff * scale
-                # Ensure non-negative and sum-to-1 after projection
-                w_vec = np.maximum(w_vec, 0.0)
-                s = w_vec.sum()
-                if s > 0:
-                    w_vec = w_vec / s
 
+        # Validate jointly; clipping and renormalizing would invalidate turnover/cap.
+        if (not np.isfinite(w_vec).all() or np.any(w_vec < -1e-8)
+                or np.any(w_vec > 0.20 + 1e-8)
+                or not np.isclose(w_vec.sum(), 1.0, atol=1e-8, rtol=0)
+                or np.abs(w_vec - prev_vec).sum() > max_turnover + 1e-8):
+            raise ValueError("infeasible allocation: cap, budget and turnover must hold jointly")
         w_series = pd.Series(w_vec, index=cols).reindex(scores.columns).fillna(0.0)
-        # Enforce max weight
-        w_series = w_series.clip(upper=0.20)
-        w_series = w_series / w_series.sum() if w_series.sum() > 0 else w_series
         weights.loc[date] = w_series
     return weights
 
