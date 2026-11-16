@@ -47,6 +47,8 @@ class SignalFrame:
     def validate_against(self, prices: pd.DataFrame) -> None:
         if self.scores.empty:
             raise ValueError("scores must not be empty")
+        if not np.isfinite(self.scores.to_numpy(dtype=float)).all():
+            raise ValueError("scores must be finite")
         missing_columns = set(self.scores.columns) - set(prices.columns)
         if missing_columns:
             raise ValueError(f"scores contain unknown assets: {sorted(missing_columns)}")

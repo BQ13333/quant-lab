@@ -256,18 +256,20 @@ def test_country_neutral_dollar_neutral_groups(simple_scores, groups):
 # ---------------------------------------------------------------------------
 
 def test_turnover_constrained_respects_limit(simple_scores, previous_weights):
-    w = optimizers.turnover_constrained_optimizer(simple_scores, previous_weights, max_turnover=0.5)
-    for date in w.index:
-        prev = previous_weights.loc[date]
-        curr = w.loc[date]
-        turnover = (curr - prev).abs().sum()
-        assert turnover <= 0.5 + 1e-9
+    # Four assets cannot satisfy a 20% cap and a fully invested budget.
+    with pytest.raises(ValueError, match="infeasible"):
+        optimizers.turnover_constrained_optimizer(simple_scores, previous_weights, max_turnover=0.5)
 
 
-def test_turnover_constrained_sums_to_one(simple_scores, previous_weights):
-    w = optimizers.turnover_constrained_optimizer(simple_scores, previous_weights, max_turnover=0.5)
-    row_sums = w.sum(axis=1)
-    assert (row_sums - 1.0).abs().max() < 1e-9
+def test_turnover_constrained_sums_to_one():
+    # Use a feasible six-asset book; the old four-asset test silently relaxed cap.
+    scores = pd.DataFrame([[1.] * 6])
+    previous = pd.DataFrame([[.2,.2,.2,.2,.1,.1]])
+    for use_cvxpy in (False, True):
+        w = optimizers.turnover_constrained_optimizer(scores, previous, max_turnover=.5, use_cvxpy=use_cvxpy)
+        assert (w.sum(axis=1) - 1).abs().max() < 1e-8
+        assert w.max().max() <= .2 + 1e-8
+        assert (w - previous).abs().sum(axis=1).max() <= .5 + 1e-8
 
 
 # ---------------------------------------------------------------------------

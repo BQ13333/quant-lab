@@ -23,15 +23,17 @@ def test_country_cost_schedule_known_countries():
 
 
 def test_country_cost_schedule_default():
-    assert country_cost_schedule("Unknown") == 0.0015
-    assert country_cost_schedule("Thailand") == 0.0015
-    assert country_cost_schedule("Vietnam") == 0.0015
-    assert country_cost_schedule("Philippines") == 0.0015
+    # Unknown market evidence must fail closed, never inherit a generic fee.
+    for country in ("Unknown", "Thailand", "Vietnam", "Philippines"):
+        with pytest.raises(ValueError):
+            country_cost_schedule(country)
 
 
 def test_country_cost_schedule_etf():
     assert country_cost_schedule("Singapore", tier="etf") == 0.0005
-    assert country_cost_schedule("Unknown", tier="etf") == 0.0005
+    # ETF tier cannot bypass unsupported-market validation.
+    with pytest.raises(ValueError):
+        country_cost_schedule("Unknown", tier="etf")
 
 
 def test_bps_cost_grid():
@@ -45,10 +47,10 @@ def test_linear_transaction_cost_on_synthetic():
         index=pd.date_range("2024-01-01", periods=3),
     )
     costs = linear_transaction_cost(weights, 10.0)
-    # Day 0: turnover = 0.0 (no prior position), cost = 0.0
+    # Day 0: starting from cash incurs opening turnover; no free first trade.
     # Day 1: turnover = 0.0, cost = 0.0
     # Day 2: turnover = 1.0, cost = 0.001
-    assert costs.iloc[0] == pytest.approx(0.0)
+    assert costs.iloc[0] == pytest.approx(0.001)
     assert costs.iloc[1] == pytest.approx(0.0)
     assert costs.iloc[2] == pytest.approx(0.001)
 

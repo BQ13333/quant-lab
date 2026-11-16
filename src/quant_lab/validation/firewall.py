@@ -134,8 +134,7 @@ def deflated_sharpe_with_lifetime(
 ) -> float:
     if lifetime_attempts < len(observed_trial_sharpes) or lifetime_attempts < 1:
         raise ValueError("lifetime_attempts must cover every observed trial")
-    denominator = list(observed_trial_sharpes) + [0.0] * (lifetime_attempts - len(observed_trial_sharpes))
-    return deflated_sharpe_ratio(returns, denominator, periods_per_year=periods_per_year)
+    return deflated_sharpe_ratio(returns, observed_trial_sharpes, periods_per_year=periods_per_year, n_trials=lifetime_attempts)
 
 
 def evaluate_research_gate(
