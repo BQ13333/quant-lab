@@ -1125,6 +1125,10 @@ class TrialLedger:
         finally:
             connection.close()
 
+    def snapshot(self):
+        from .trial_snapshot import take_snapshot
+        return take_snapshot(self)
+
     def lifetime_counts(self, *, campaign: str | None = None, family: str | None = None) -> dict[str, int]:
         clauses: list[str] = []
         params: list[str] = []

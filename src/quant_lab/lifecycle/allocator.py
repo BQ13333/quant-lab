@@ -1,5 +1,5 @@
 """Discounted Gaussian Thompson sampling with cash and hard feasible bounds."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Sequence
 import numpy as np
 from scipy.optimize import linprog
@@ -15,8 +15,17 @@ class Sleeve:
     lifecycle_cap: float = 1.
     ramp_cap: float = 1.
     ops_cap: float = 1.
+    _monitor_bound: bool = field(default=False, repr=False)
+
+    @classmethod
+    def from_monitor(cls, state, ops_cap=1., permission=Permission.BLOCK, *, floor=0.):
+        # The monitor's actual permitted weight is the binding lifecycle ceiling.
+        return cls(permission=permission, lifecycle=state.lifecycle,
+                   lifecycle_cap=state.weight, ramp_cap=state.ramp_cap, ops_cap=ops_cap, floor=floor, _monitor_bound=True)
 
     def bounds(self) -> tuple[float, float]:
+        if not self._monitor_bound:
+            raise ValueError("sleeve must be built from monitor state")
         finite(self.floor)
         if not isinstance(self.lifecycle, Lifecycle) or not 0 <= self.floor <= 1:
             raise ValueError('invalid sleeve')

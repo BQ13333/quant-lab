@@ -1,11 +1,11 @@
 """Synthetic lab demonstration, not evidence of achievable market returns."""
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import numpy as np
 import pandas as pd
 from .allocator import DiscountedThompson, Sleeve
 from .decay import finite
 from .monitor import MonitorState, Policy, evaluate, monthly_inputs, monthly_schedule
-from .states import Lifecycle, Value
+from .states import Lifecycle, Value, Permission, ScheduleCalendar
 
 @dataclass(frozen=True)
 class Simulation:
@@ -19,7 +19,7 @@ def simulate(*, months: int = 120, birth_rate: float = 1., stop_births: int | No
     """Poisson arrivals; lognormal half-lives; independent monthly IC noise.
 
     Allocate before observing each month's rewards. Retirement proposals are
-    approved automatically ONLY in this simulation. All candidate streams are
+    recorded as proposals only, without approval. All candidate streams are
     pre-generated so paired birth-stop experiments share counterfactual noise.
     Path IR is conditional expected annualised ICIR; realised IC is also saved.
     """
@@ -40,8 +40,7 @@ def simulate(*, months: int = 120, birth_rate: float = 1., stop_births: int | No
     rows = []
     for t in range(months):
         active = (births <= t) & ((births < stop_births) if stop_births is not None else True)
-        sleeves = [Sleeve(lifecycle=states[i].lifecycle if active[i] else Lifecycle.CANDIDATE,
-                         ramp_cap=states[i].ramp_cap, lifecycle_cap=states[i].weight) for i in range(n)]
+        sleeves = [Sleeve.from_monitor(states[i], permission=Permission.OK if active[i] else Permission.BLOCK) for i in range(n)]
         # Full turnover budget allows mandatory retirements; allocator itself
         # supports tighter budgets and reports infeasible combinations.
         weights = bandit.allocate(weights, sleeves, max_turnover=2.)
@@ -54,7 +53,7 @@ def simulate(*, months: int = 120, birth_rate: float = 1., stop_births: int | No
                          live=int(sum(active[i] and states[i].lifecycle != Lifecycle.RETIRED for i in range(n)))))
         bandit.update([float(rewards[i]) if active[i] else None for i in range(n)])
         for i in np.flatnonzero(active):
-            result = evaluate(states[i], monthly_inputs(Value(float(rewards[i]))), monthly_schedule(), policy,
-                              approve_retirement=True)
+            result = evaluate(states[i], monthly_inputs(Value(float(rewards[i]))), ScheduleCalendar(), policy,
+                              approve_retirement=False)
             states[i] = result.state
     return Simulation(pd.DataFrame(rows), pd.DataFrame(dict(birth=births, initial_ic=initial, half_life=halves)))

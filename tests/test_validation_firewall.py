@@ -40,7 +40,7 @@ def test_adversarial_holdout_changes_cannot_change_research_rank_or_hash():
     first = firewall.seal_research_inputs(
         features=features,
         candidate_returns=returns,
-        available_at=available,
+        available_at=available, universe_available_at=available,
         research_end=end,
     )
     changed_features = features.copy()
@@ -50,7 +50,7 @@ def test_adversarial_holdout_changes_cannot_change_research_rank_or_hash():
     second = firewall.seal_research_inputs(
         features=changed_features,
         candidate_returns=changed_returns,
-        available_at=available,
+        available_at=available, universe_available_at=available,
         research_end=end,
     )
     assert first.content_hash == second.content_hash
@@ -110,7 +110,7 @@ def test_historical_period_is_explicitly_contaminated_audit_only():
     dataset = ResearchDataFirewall(min_observations=504).seal_research_inputs(
         features=features,
         candidate_returns=returns,
-        available_at=available,
+        available_at=available, universe_available_at=available,
         research_end=features.index[649],
     )
     assert dataset.historical_label == "research_or_contaminated_audit_only"
@@ -121,7 +121,7 @@ def test_research_gate_uses_lifetime_attempts_and_returns_blinded_codes(tmp_path
     dataset = ResearchDataFirewall(min_observations=504).seal_research_inputs(
         features=features,
         candidate_returns=returns,
-        available_at=available,
+        available_at=available, universe_available_at=available,
         research_end=features.index[649],
     )
     manifest = tmp_path / "legacy.json"
@@ -161,3 +161,51 @@ def test_model_runtime_stays_on_research_side_of_firewall():
     assert "quant_lab.execution" not in source
     assert "ibkr" not in source
     assert "openrouter" not in source
+
+
+def sealed():
+    features, returns, available=panels()
+    return ResearchDataFirewall().seal_research_inputs(features=features,candidate_returns=returns,available_at=available,universe_available_at=available,research_end=features.index[649])
+
+
+def test_cross_market_trials_raise_charged_count(tmp_path):
+    ledger=TrialLedger(tmp_path/'ledger.sqlite',tmp_path/'evidence')
+    for i,market in enumerate(('MY','HK','CN')):
+        reservation=ledger.reserve_trial(idempotency_key=market,campaign=market,family=market,hypothesis_id=market,candidate_id=market,code_hash='a'*64,data_hash='b'*64,config_hash='c'*64,prompt_hash='d'*64,model_hash='e'*64)
+        ledger.record_outcome(reservation.trial_id,status="success",payload={"sharpe": .2+i*.1})
+    snap=ledger.snapshot()
+    assert snap.global_count==3 and dict(snap.family_counts)==dict(MY=1,HK=1,CN=1)
+    result=evaluate_research_gate(sealed(),candidate_id='stable',ledger=ledger,observed_trial_sharpes=snap.sharpes,snapshot=snap,benchmark_name='CASH')
+    assert result.lifetime_attempts==3
+    assert ResearchFailureCode.LEDGER_UNAVAILABLE not in result.failure_codes
+    changed=dataclasses.replace(snap,dispersion_receipt=(("forged",99.),))
+    assert ResearchFailureCode.LEDGER_UNAVAILABLE in evaluate_research_gate(sealed(),candidate_id="stable",ledger=ledger,observed_trial_sharpes=changed.sharpes,snapshot=changed,benchmark_name="CASH").failure_codes
+
+
+def test_gate_rejects_unbound_trial_sharpes(tmp_path):
+    ledger=TrialLedger(tmp_path/'ledger.sqlite',tmp_path/'evidence')
+    r=evaluate_research_gate(sealed(),candidate_id='stable',ledger=ledger,observed_trial_sharpes=[.2,.3],snapshot=ledger.snapshot(),benchmark_name='CASH')
+    assert not r.passed and ResearchFailureCode.LEDGER_UNAVAILABLE in r.failure_codes
+    with pytest.raises(ValueError,match='thresholds'):
+        evaluate_research_gate(sealed(),candidate_id='stable',ledger=ledger,observed_trial_sharpes=[],min_deflated_sharpe=float('nan'))
+
+
+def test_missing_available_at_fails():
+    f,r,a=panels()
+    for kwargs in ({},{'available_at':a},{'universe_available_at':a}):
+        with pytest.raises(ValueError,match='POINT_IN_TIME'):
+            ResearchDataFirewall().seal_research_inputs(features=f,candidate_returns=r,research_end=f.index[649],**kwargs)
+
+
+def test_benchmark_gap_fails(tmp_path):
+    ledger=TrialLedger(tmp_path/'ledger.sqlite',tmp_path/'evidence'); data=sealed()
+    r=evaluate_research_gate(data,candidate_id='stable',ledger=ledger,observed_trial_sharpes=[],benchmark_name='INDEX',benchmark_returns=pd.Series(0.,index=data.features.index[:-1]))
+    assert not r.passed and ResearchFailureCode.NON_POSITIVE_NET_IR in r.failure_codes
+
+
+def test_cash_benchmark_must_be_explicit(tmp_path):
+    ledger=TrialLedger(tmp_path/'ledger.sqlite',tmp_path/'evidence'); data=sealed()
+    omitted=evaluate_research_gate(data,candidate_id='stable',ledger=ledger,observed_trial_sharpes=[])
+    cash=evaluate_research_gate(data,candidate_id='stable',ledger=ledger,observed_trial_sharpes=[],benchmark_name='CASH')
+    assert ResearchFailureCode.NON_POSITIVE_NET_IR in omitted.failure_codes
+    assert cash.net_oos_ir > 0

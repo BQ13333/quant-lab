@@ -3,9 +3,14 @@ import pytest
 from quant_lab.lifecycle.allocator import *
 
 
+def sleeve(*, lifecycle=Lifecycle.KEEP, ramp_cap=1., ops_cap=1., permission=Permission.OK, floor=0.):
+    from quant_lab.lifecycle.monitor import MonitorState
+    return Sleeve.from_monitor(MonitorState(lifecycle=lifecycle,weight=1.,ramp_cap=ramp_cap),ops_cap,permission,floor=floor)
+
+
 def test_constraints_seed_and_infeasibility():
-    sleeves = [Sleeve(ramp_cap=.3, floor=.1), Sleeve(lifecycle=Lifecycle.PAUSE),
-               Sleeve(lifecycle=Lifecycle.RETIRED), Sleeve(permission=Permission.BLOCK), Sleeve(ops_cap=.4)]
+    sleeves = [sleeve(ramp_cap=.3, floor=.1), sleeve(lifecycle=Lifecycle.PAUSE),
+               sleeve(lifecycle=Lifecycle.RETIRED), sleeve(permission=Permission.BLOCK), sleeve(ops_cap=.4)]
     a = DiscountedThompson(5, prior_mean=.2, seed=12)
     b = DiscountedThompson(5, prior_mean=.2, seed=12)
     p = np.zeros(5)
@@ -16,7 +21,7 @@ def test_constraints_seed_and_infeasibility():
         assert np.all(w[1:4] == 0) and abs(w-p).sum() <= .2+1e-8
         a.update([.1]*5); b.update([.1]*5); p = w
     with pytest.raises(ValueError, match='feasible'):
-        constrained_weights([1], [1], [Sleeve(lifecycle=Lifecycle.PAUSE)], .2)
+        constrained_weights([1], [1], [sleeve(lifecycle=Lifecycle.PAUSE)], .2)
 
 
 def test_bandit_beats_baseline_on_decaying_alpha():
@@ -25,7 +30,7 @@ def test_bandit_beats_baseline_on_decaying_alpha():
     for seed in (8, 19):
         rng = np.random.default_rng(seed)
         bandit = DiscountedThompson(3, gamma=.85, sigma=.04, prior_sd=.1, seed=seed)
-        sleeves = [Sleeve()]*3
+        sleeves = [sleeve()]*3
         base = inverse_variance([.04**2]*3, sleeves)
         p = np.zeros(3); earned = []; benchmark = []
         for t in range(180):
@@ -40,9 +45,17 @@ def test_bandit_beats_baseline_on_decaying_alpha():
 
 
 def test_baseline_bounds_and_nan_update_atomic():
-    weights = inverse_variance([1,4], [Sleeve(ops_cap=.6), Sleeve()])
+    weights = inverse_variance([1,4], [sleeve(ops_cap=.6), sleeve()])
     assert weights == pytest.approx([.6,.4])
     bandit = DiscountedThompson(2)
     with pytest.raises(ValueError):
         bandit.update([1,np.nan])
     assert np.all(bandit.count == 0)
+
+
+def test_sleeve_built_from_monitor_state():
+    from quant_lab.lifecycle.monitor import MonitorState
+    state = MonitorState(weight=.2,ramp_cap=.25)
+    sleeve = Sleeve.from_monitor(state,ops_cap=.15,permission=Permission.OK)
+    assert sleeve.bounds() == (0.,.15)
+    assert Sleeve.from_monitor(state).bounds() == (0.,0.)
