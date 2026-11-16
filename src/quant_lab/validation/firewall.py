@@ -45,6 +45,7 @@ class ResearchDataset:
     candidate_returns: pd.DataFrame
     research_end: pd.Timestamp
     content_hash: str
+    pit_verified: bool = False
     historical_label: str = "research_or_contaminated_audit_only"
 
 
@@ -83,6 +84,7 @@ class ResearchDataFirewall:
         features: pd.DataFrame,
         candidate_returns: pd.DataFrame,
         available_at: pd.DataFrame | None = None,
+        universe_available_at: pd.DataFrame | None = None,
         research_end: str | pd.Timestamp | None = None,
         purge: int = 5,
         embargo: int = 5,
@@ -112,11 +114,22 @@ class ResearchDataFirewall:
                     raise ValueError(ResearchFailureCode.POINT_IN_TIME_VIOLATION.value)
         if (end - common.max()).days > self.max_staleness_days:
             raise ValueError(ResearchFailureCode.STALE_DATA.value)
+        if available_at is None or universe_available_at is None:
+            raise ValueError(ResearchFailureCode.POINT_IN_TIME_VIOLATION.value)
+        membership = universe_available_at.reindex(index=common)
+        if membership.shape[1] == 0:
+            raise ValueError(ResearchFailureCode.POINT_IN_TIME_VIOLATION.value)
+        for column in membership:
+            times = pd.to_datetime(membership[column], errors='coerce')
+            if times.isna().any() or (times > common).any():
+                raise ValueError(ResearchFailureCode.POINT_IN_TIME_VIOLATION.value)
         digest = hashlib.sha256()
         digest.update(pd.util.hash_pandas_object(research_features, index=True).values.tobytes())
         digest.update(pd.util.hash_pandas_object(research_returns, index=True).values.tobytes())
+        digest.update(pd.util.hash_pandas_object(aligned, index=True).values.tobytes())
+        digest.update(pd.util.hash_pandas_object(membership, index=True).values.tobytes())
         digest.update(end.isoformat().encode("utf-8"))
-        return ResearchDataset(research_features, research_returns, end, digest.hexdigest())
+        return ResearchDataset(research_features, research_returns, end, digest.hexdigest(), pit_verified=True)
 
     @staticmethod
     def rank_candidates(dataset: ResearchDataset) -> tuple[str, ...]:
@@ -145,20 +158,36 @@ def evaluate_research_gate(
     ledger: TrialLedger,
     observed_trial_sharpes: Sequence[float],
     benchmark_returns: pd.Series | None = None,
+    benchmark_name: str | None = None,
+    snapshot=None,
     max_pbo: float = 0.20,
     min_deflated_sharpe: float = 0.95,
 ) -> ResearchGateResult:
+    if not np.isfinite([max_pbo,min_deflated_sharpe]).all() or not 0 <= max_pbo <= 1 or not 0 <= min_deflated_sharpe <= 1:
+        raise ValueError("invalid research gate thresholds")
     failures: list[ResearchFailureCode] = []
     if candidate_id not in dataset.candidate_returns:
         raise KeyError(f"candidate not present in research returns: {candidate_id}")
     try:
-        counts = ledger.lifetime_counts(campaign="malaysia")
-        lifetime_attempts = int(counts["lifetime_attempts"])
+        current = ledger.snapshot()
+        lifetime_attempts = current.global_count
+        if snapshot is None or (snapshot.global_count, snapshot.family_counts, snapshot.dispersion_receipt, snapshot.ledger_hash) != (current.global_count, current.family_counts, current.dispersion_receipt, current.ledger_hash) or tuple(observed_trial_sharpes) != snapshot.sharpes:
+            failures.append(ResearchFailureCode.LEDGER_UNAVAILABLE)
     except Exception:
         failures.append(ResearchFailureCode.LEDGER_UNAVAILABLE)
         lifetime_attempts = 0
     returns = dataset.candidate_returns[candidate_id]
-    benchmark = benchmark_returns.reindex(returns.index).fillna(0.0) if benchmark_returns is not None else 0.0
+    if dataset.pit_verified is not True:
+        failures.append(ResearchFailureCode.POINT_IN_TIME_VIOLATION)
+    if benchmark_name == 'CASH' and benchmark_returns is None:
+        benchmark = 0.
+    elif benchmark_name and benchmark_name != 'CASH' and benchmark_returns is not None and benchmark_returns.index.is_unique:
+        benchmark = benchmark_returns.reindex(returns.index)
+        if not np.isfinite(benchmark.to_numpy(dtype=float)).all():
+            failures.append(ResearchFailureCode.NON_POSITIVE_NET_IR)
+    else:
+        benchmark = float('nan')
+        failures.append(ResearchFailureCode.NON_POSITIVE_NET_IR)
     active = returns - benchmark
     net_ir = sharpe_ratio(active)
     if dataset.candidate_returns.shape[1] < 2:
@@ -170,12 +199,14 @@ def evaluate_research_gate(
         except ValueError:
             failures.append(ResearchFailureCode.INSUFFICIENT_SAMPLE)
             pbo = 1.0
-    if lifetime_attempts:
-        dsr = deflated_sharpe_with_lifetime(
-            returns,
-            observed_trial_sharpes=observed_trial_sharpes,
-            lifetime_attempts=lifetime_attempts,
-        )
+    if lifetime_attempts and ResearchFailureCode.LEDGER_UNAVAILABLE not in failures:
+        try:
+            dsr = deflated_sharpe_with_lifetime(
+                returns, observed_trial_sharpes=observed_trial_sharpes,
+                lifetime_attempts=lifetime_attempts)
+        except (ValueError, TypeError):
+            failures.append(ResearchFailureCode.DEFLATED_SHARPE_FAILURE)
+            dsr = 0.0
     else:
         dsr = 0.0
     if pbo > max_pbo:

@@ -6,7 +6,7 @@ from quant_lab.validation.cpcv import combinatorial_purged_cv_splits
 
 def test_cpcv_no_overlap():
     index = pd.bdate_range("2024-01-01", periods=100)
-    splits = list(combinatorial_purged_cv_splits(index, n_splits=6, purge=3, embargo=2))
+    splits = list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=6, purge=3, embargo=2))
     assert len(splits) > 0
     for split in splits:
         # No overlapping index values between train and test
@@ -16,7 +16,7 @@ def test_cpcv_no_overlap():
 
 def test_cpcv_all_folds_present():
     index = pd.bdate_range("2024-01-01", periods=60)
-    splits = list(combinatorial_purged_cv_splits(index, n_splits=4, purge=2, embargo=1))
+    splits = list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=4, purge=2, embargo=1))
     # C(4,2) = 6 combinations, but some may be dropped if purge/embargo wipes train
     assert len(splits) >= 1
     # Verify total expected combinations when feasible
@@ -25,7 +25,7 @@ def test_cpcv_all_folds_present():
 
 def test_cpcv_train_not_empty():
     index = pd.bdate_range("2024-01-01", periods=120)
-    splits = list(combinatorial_purged_cv_splits(index, n_splits=6, purge=5, embargo=5))
+    splits = list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=6, purge=5, embargo=5))
     for split in splits:
         assert len(split.train_indices) > 0
         assert len(split.test_indices) > 0
@@ -33,7 +33,7 @@ def test_cpcv_train_not_empty():
 
 def test_cpcv_purges_each_noncontiguous_test_block_boundary():
     index = pd.RangeIndex(80)
-    splits = list(combinatorial_purged_cv_splits(index, n_splits=4, purge=2, embargo=3))
+    splits = list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=4, purge=2, embargo=3))
     assert splits
     for split in splits:
         test_positions = set(split.test_indices)
@@ -45,6 +45,35 @@ def test_cpcv_purges_each_noncontiguous_test_block_boundary():
 def test_cpcv_invalid_evidence_parameters_fail_closed():
     index = pd.RangeIndex(20)
     with pytest.raises(ValueError, match="leave no usable"):
-        list(combinatorial_purged_cv_splits(index, n_splits=4, purge=10, embargo=10))
+        list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=4, purge=10, embargo=10))
     with pytest.raises(ValueError, match="positive"):
-        list(combinatorial_purged_cv_splits(index, n_splits=4, train_size=0))
+        list(combinatorial_purged_cv_splits(index, one_bar_labels=True, n_splits=4, train_size=0))
+
+
+def test_label_overlap_is_purged():
+    index=pd.RangeIndex(20)
+    ends=list(index); ends[0]=12
+    splits=list(combinatorial_purged_cv_splits(index,4,purge=0,embargo=0,label_start=index,label_end=ends))
+    assert splits
+    for split in splits:
+        for i in split.train_indices:
+            assert all(not (i <= ends[j] and ends[i] >= j) for j in split.test_indices)
+
+def test_embargo_after_purge():
+    index=pd.RangeIndex(24)
+    splits=list(combinatorial_purged_cv_splits(index,4,purge=0,embargo=2,label_start=index,label_end=index))
+    for split in splits:
+        for j in split.test_indices:
+            assert j+1 not in split.train_indices and j+2 not in split.train_indices
+    with pytest.raises(ValueError,match='label intervals'):
+        list(combinatorial_purged_cv_splits(index,4))
+
+
+def test_embargo_follows_multibar_test_label_end():
+    index=pd.RangeIndex(30)
+    ends=list(index); ends[4]=8
+    splits=list(combinatorial_purged_cv_splits(index,6,purge=0,embargo=2,label_start=index,label_end=ends))
+    assert splits
+    for split in splits:
+        if 4 in split.test_indices:
+            assert 9 not in split.train_indices and 10 not in split.train_indices

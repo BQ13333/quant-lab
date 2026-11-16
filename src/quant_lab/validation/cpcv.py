@@ -20,6 +20,7 @@ def combinatorial_purged_cv_splits(
     test_size: int | None = None,
     purge: int = 5,
     embargo: int = 5,
+    *, label_start=None, label_end=None, one_bar_labels: bool = False,
 ) -> Iterable[CPCVResult]:
     """Generate combinatorial purged cross-validation splits.
 
@@ -45,6 +46,15 @@ def combinatorial_purged_cv_splits(
     if group_size < 2:
         raise ValueError("index too short for n_splits")
 
+    if not index.is_unique or not index.is_monotonic_increasing:
+        raise ValueError('unique ordered index required')
+    if label_start is None or label_end is None:
+        if label_start is not None or label_end is not None or one_bar_labels is not True:
+            raise ValueError('label intervals or explicit one-bar labels required')
+        label_start = label_end = index
+    starts, ends = pd.Index(label_start), pd.Index(label_end)
+    if len(starts) != n or len(ends) != n or starts.hasnans or ends.hasnans or not starts.is_monotonic_increasing or any(starts > ends):
+        raise ValueError('invalid label intervals')
     groups: list[pd.Index] = []
     for i in range(n_splits):
         start = i * group_size
@@ -75,6 +85,14 @@ def combinatorial_purged_cv_splits(
             start = group_number * group_size
             end = (group_number + 1) * group_size if group_number < n_splits - 1 else n
             excluded.update(range(max(0, start - purge), min(n, end + embargo)))
+            # Multi-bar test labels can extend past the final test row.
+            # The embargo begins after that information horizon, not its row.
+            horizon_end = ends[start:end].max()
+            after = int(starts.searchsorted(horizon_end, side='right'))
+            excluded.update(range(after, min(n, after + embargo)))
+        for test_position in index.get_indexer(test_set):
+            excluded.update(i for i in train_positions
+                            if starts[i] <= ends[test_position] and ends[i] >= starts[test_position])
         valid_train_positions = [position for position in train_positions if position not in excluded]
         if not valid_train_positions:
             continue
@@ -86,3 +104,6 @@ def combinatorial_purged_cv_splits(
         test_idx = test_set
 
         yield CPCVResult(train_indices=train_idx, test_indices=test_idx)
+
+
+purged_splits = combinatorial_purged_cv_splits

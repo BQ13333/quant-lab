@@ -3,7 +3,7 @@ from dataclasses import dataclass, fields, replace
 from typing import Mapping
 from numbers import Real
 from .states import (Lifecycle, Permission, Observed, Value, Schedule, Expectation,
-                     NotApplicable, validate_inputs)
+                     NotApplicable, validate_inputs, ScheduleCalendar)
 from .decay import finite, normal_posterior, cusum, Posterior
 from .caps import compose_weight
 
@@ -59,6 +59,8 @@ class Policy:
 @dataclass(frozen=True)
 class MonitorState:
     lifecycle: Lifecycle = Lifecycle.KEEP
+    schedule_hash: str = ""
+    ramp_approvals: tuple[str, ...] = ()
     calendar: int = 0
     observations: tuple[float, ...] = ()
     cusum: float = 0.
@@ -95,19 +97,32 @@ def monthly_schedule(*, ic: Expectation = Expectation.DUE, cost_due: bool = Fals
         capacity=Expectation.DUE, mechanism_broken=Expectation.DUE, halt=Expectation.DUE).items()))
 
 
-def evaluate(state: MonitorState, inputs: Mapping[str, Observed], schedule: Schedule,
+def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: ScheduleCalendar,
              policy: Policy = Policy(), *, ops_cap: float = 1.,
-             approve_reentry: bool = False, approve_retirement: bool = False) -> Evaluation:
+             approve_reentry: bool = False, approve_retirement: bool = False, approval_id: str | None = None, ramp_plan=None, authorization=None) -> Evaluation:
     """One calendar step; hard safety caps override the soft weight step limit.
 
     Ramp progress is carried by state and can only be advanced externally after
     G8 evidence. Re-entry resets it to the first registered stage.
     """
+    approval_state = state
     t = state.calendar + 1
     halt = inputs.get('halt') == Value(True)
     if state.lifecycle == Lifecycle.RETIRED:
         return Evaluation(replace(state, calendar=t, weight=0.), Permission.BLOCK, None)
     try:
+        if not isinstance(calendar, ScheduleCalendar):
+            raise ValueError('registered calendar required')
+        calendar_hash = calendar.sha256()
+        if state.schedule_hash and state.schedule_hash != calendar_hash:
+            raise ValueError('calendar mismatch')
+        if not state.schedule_hash and state.calendar:
+            raise ValueError('unregistered carried state')
+        state = replace(state, schedule_hash=calendar_hash)
+        schedule = calendar.schedule_for(t)
+        if approve_reentry or approve_retirement:
+            from .approval import require_human_approval, monitor_evidence
+            require_human_approval(approval_id, authorization, approval_state, monitor_evidence(inputs,calendar,policy,approve_reentry,approve_retirement,ramp_plan))
         policy.validate()
         finite(state.cusum, state.weight, state.ramp_cap, state.observations, ops_cap)
         if state.cusum < 0 or not 0 <= state.weight <= 1 or not 0 <= state.ramp_cap <= 1 or not 0 <= ops_cap <= 1:
@@ -178,7 +193,7 @@ def evaluate(state: MonitorState, inputs: Mapping[str, Observed], schedule: Sche
         proposals.append('RETIRE')
     ramp = state.ramp_cap
     if approve_reentry and 'REENTRY' in proposals and 'RETIRE' not in proposals:
-        life, ramp, paused, shadow = Lifecycle.RAMP, policy.first_ramp, 0, 0
+        life, ramp, paused, shadow = Lifecycle.RAMP, (ramp_plan.first_feasible if ramp_plan else policy.first_ramp), 0, 0
     if approve_retirement and 'RETIRE' in proposals:
         life = Lifecycle.RETIRED
     cap = 0. if life in (Lifecycle.PAUSE, Lifecycle.RETIRED, Lifecycle.CANDIDATE, Lifecycle.VALIDATED, Lifecycle.PAPER) else policy.reduce_cap if life == Lifecycle.REDUCE else 1.

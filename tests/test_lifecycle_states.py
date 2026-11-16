@@ -19,3 +19,12 @@ def test_schedule_sentinels():
     assert validate_inputs(schedule, dict(ic=NoObservationExpected(), cost=NotApplicable())) == Permission.OK
     assert validate_inputs(schedule, dict(ic=NotApplicable(), cost=NotApplicable())) == Permission.BLOCK
     assert validate_inputs(schedule, {}) == Permission.BLOCK
+
+
+def test_value_when_not_due_blocks():
+    assert validate_inputs(Schedule((('cost',Expectation.NOT_APPLICABLE),)),{'cost':Value(1)}) == Permission.BLOCK
+
+
+def test_unknown_type_tag_rejected():
+    for payload in ('{"schema_version":2,"payload":0}', '{"schema_version":1,"payload":{"type":"Unknown"}}'):
+        with pytest.raises(ValueError): from_json(payload)
