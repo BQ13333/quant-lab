@@ -88,23 +88,39 @@ def sharpe_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 2
 
 
 def sortino_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 252) -> float:
+    """Annualised Sortino ratio using downside deviation about zero.
+
+    Downside deviation is ``sqrt(mean(min(r, 0)^2))`` over the full sample,
+    including zeros and positive returns, not the sample standard deviation
+    of the negative observations only.
+    """
+
     series = _clean_returns(returns)
-    downside = series[series < 0]
-    if len(downside) < 2:
+    if len(series) < 2:
         return 0.0
-    downside_vol = downside.std(ddof=1)
-    if downside_vol == 0 or np.isnan(downside_vol):
+    downside_dev = math.sqrt(float(np.mean(np.minimum(series.to_numpy(dtype=float), 0.0) ** 2)))
+    if not math.isfinite(downside_dev) or downside_dev == 0.0:
+        mean = float(series.mean())
+        if mean > 0.0:
+            return math.inf
         return 0.0
-    return float(series.mean() / downside_vol * math.sqrt(periods_per_year))
+    return float(series.mean() / downside_dev * math.sqrt(periods_per_year))
 
 
 def max_drawdown(returns: pd.Series | Sequence[float]) -> float:
+    """Peak-to-trough drawdown, including a loss on the first period.
+
+    Equity is started at 1.0 *before* applying the first return, so a path
+    that opens with a loss (for example ``[-0.2, 0.1]``) reports -0.20 rather
+    than 0.0.
+    """
+
     series = _clean_returns(returns)
     if series.empty:
         return 0.0
-    equity = (1.0 + series).cumprod()
-    drawdown = equity / equity.cummax() - 1.0
-    return float(drawdown.min())
+    equity = np.concatenate(([1.0], (1.0 + series.to_numpy(dtype=float)).cumprod()))
+    drawdown = equity / np.maximum.accumulate(equity) - 1.0
+    return float(np.min(drawdown))
 
 
 def calmar_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 252) -> float:

@@ -27,7 +27,10 @@ def probability_of_backtest_overfitting(
     Contiguous blocks are split into every half-sample IS/OOS combination. For
     each path, the best in-sample strategy is ranked out of sample; PBO is the
     fraction of paths where that selected strategy falls at or below the OOS
-    median. ``strict=True`` raises when evidence is insufficient.
+    median. OOS ranks use mid-ranks for ties. If ``n_trials`` is provided and
+    is larger than the number of matrix columns, it is used as the family size
+    (fail-closed: a larger family lowers relative rank). A smaller ``n_trials``
+    is ignored. ``strict=True`` raises when evidence is insufficient.
     """
 
     if isinstance(returns_matrix, pd.DataFrame):
@@ -45,6 +48,9 @@ def probability_of_backtest_overfitting(
     valid_cols = ~np.isnan(matrix).all(axis=0)
     matrix = matrix[valid_rows][:, valid_cols]
     n_obs, n_strategies = matrix.shape
+    if n_trials is not None:
+        if isinstance(n_trials, bool) or not isinstance(n_trials, (int, np.integer)) or int(n_trials) < 1:
+            raise ValueError("n_trials must be a positive integer when provided")
     if n_splits < 4 or n_splits % 2 != 0 or n_obs < n_splits * 2:
         if strict:
             raise ValueError("PBO requires an even n_splits >= 4 and at least two rows per split")
@@ -69,7 +75,10 @@ def probability_of_backtest_overfitting(
             continue
         selected = int(np.argmax(is_perf))
         selected_oos = oos_perf[selected]
-        relative_rank = (1.0 + float(np.sum(oos_perf < selected_oos))) / (n_strategies + 1.0)
+        # n_trials, if supplied, may only raise the trial count (fail-closed).
+        # A smaller n_trials must not shrink the family.
+        trial_count = n_strategies if n_trials is None else max(n_strategies, int(n_trials))
+        relative_rank = _mid_relative_rank(oos_perf, selected_oos, trial_count)
         overfit_paths += int(relative_rank <= 0.5)
         total_paths += 1
     if total_paths == 0:
@@ -87,29 +96,66 @@ def deflated_sharpe_probability(
     return deflated_sharpe_ratio(returns, trial_sharpes)
 
 
+def _mid_relative_rank(perf: np.ndarray, selected: float, n_trials: int) -> float:
+    """CSCV relative rank with mid-ranks for ties.
+
+    rank = 1 + (# strictly worse) + 0.5 * (# ties excluding self).
+    Relative rank is rank / (n_trials + 1). ``n_trials`` must be at least the
+    length of ``perf``.
+    """
+
+    n_obs = int(len(perf))
+    if n_trials < n_obs:
+        raise ValueError("n_trials must be at least the number of observed strategies")
+    tie = np.isclose(perf, selected, rtol=0.0, atol=1e-15)
+    n_tie = float(np.sum(tie))
+    n_worse = float(np.sum((perf < selected) & ~tie))
+    rank = 1.0 + n_worse + 0.5 * max(n_tie - 1.0, 0.0)
+    return rank / (int(n_trials) + 1.0)
+
+
 def multiple_comparison_adjustment(
     trial_sharpes: Sequence[float],
     method: str = "bonferroni",
+    *,
+    n_observations: int,
+    periods_per_year: int = 252,
 ) -> pd.Series:
     """Return adjusted p-values for a family of Sharpe ratios tested against zero.
 
     Methods: bonferroni, holm, fdr_bh (Benjamini-Hochberg).
+
+    ``n_observations`` is the length T of the return series used to form each
+    Sharpe, not the size of the trial family. For annualised Sharpes (the
+    convention of ``sharpe_ratio``), ``t = SR * sqrt(T / periods_per_year)``.
+    For per-period Sharpes, pass ``periods_per_year=1``, in which case
+    ``t = SR * sqrt(T - 1)``. Missing or invalid T fails closed.
     """
+
+    if not isinstance(n_observations, (int, np.integer)) or int(n_observations) < 2:
+        raise ValueError("n_observations (T) must be an integer >= 2")
+    if not isinstance(periods_per_year, (int, np.integer)) or int(periods_per_year) < 1:
+        raise ValueError("periods_per_year must be an integer >= 1")
 
     values = np.asarray([x for x in trial_sharpes if np.isfinite(x)], dtype=float)
     n = len(values)
     if n == 0:
         return pd.Series(dtype=float)
 
-    # Two-sided t-test for Sharpe > 0 (simplified: use z-approximation)
-    # t = sr * sqrt(n-1) assuming i.i.d normal returns
-    # p-value = 1 - CDF(t) for one-sided, 2 * (1 - CDF(|t|)) for two-sided
+    # Two-sided z-test for Sharpe against zero. The t-stat uses T, not family size.
+    # p-value = 2 * (1 - CDF(|t|))
     pvalues = np.zeros(n)
+    t_len = int(n_observations)
+    ppy = int(periods_per_year)
+    if ppy == 1:
+        t_scale = math.sqrt(max(1, t_len - 1))
+    else:
+        t_scale = math.sqrt(t_len / ppy)
     for i, sr in enumerate(values):
-        if sr == 0 or n < 2:
+        if sr == 0:
             pvalues[i] = 1.0
             continue
-        t_stat = sr * math.sqrt(max(1, n - 1))
+        t_stat = sr * t_scale
         if stats is not None:
             pvalues[i] = 2 * (1 - stats.norm.cdf(abs(t_stat)))
         else:
