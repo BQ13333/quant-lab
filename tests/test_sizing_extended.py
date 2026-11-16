@@ -39,14 +39,18 @@ def previous_weights() -> pd.DataFrame:
     )
 
 
-def test_scores_to_turnover_constrained_weights_sums_to_one(simple_scores, previous_weights):
+def test_scores_to_turnover_constrained_weights_sums_to_one(feasible_turnover_inputs):
+    simple_scores, previous_weights = feasible_turnover_inputs
     w = scores_to_turnover_constrained_weights(simple_scores, previous_weights, max_turnover=0.5)
     row_sums = w.sum(axis=1)
     assert (row_sums - 1.0).abs().max() < 1e-9
 
 
-def test_scores_to_turnover_constrained_weights_respects_limit(simple_scores, previous_weights):
+def test_scores_to_turnover_constrained_weights_respects_limit(feasible_turnover_inputs):
+    simple_scores, previous_weights = feasible_turnover_inputs
     w = scores_to_turnover_constrained_weights(simple_scores, previous_weights, max_turnover=0.5)
+    assert w.max().max() <= 0.20 + 1e-8
+    assert (w - previous_weights).abs().to_numpy().sum() > 0
     for date in w.index:
         prev = previous_weights.loc[date]
         curr = w.loc[date]
@@ -100,3 +104,20 @@ def test_downsample_rebalance_invalid_frequency():
     weights = pd.DataFrame(np.random.rand(10, 3), index=dates, columns=["A", "B", "C"])
     with pytest.raises(ValueError, match="frequency must be one of"):
         downsample_rebalance(weights, frequency="Q")
+
+
+@pytest.mark.parametrize("assets", [3, 4])
+def test_turnover_sizing_rejects_infeasible_full_investment(assets):
+    # The strict 20% cap cannot fund a unit budget with fewer than five assets.
+    scores = pd.DataFrame([np.arange(assets, dtype=float)])
+    previous = pd.DataFrame(1.0 / assets, index=scores.index, columns=scores.columns)
+    with pytest.raises(ValueError, match="infeasible allocation"):
+        scores_to_turnover_constrained_weights(scores, previous)
+
+
+@pytest.fixture
+def feasible_turnover_inputs():
+    # Keep the 20% cap: six assets permit full investment and nonzero turnover.
+    scores = pd.DataFrame([[1., 2., 3., 4., 5., 6.]] * 5)
+    previous = pd.DataFrame([[.2, .2, .2, .2, .1, .1]] * 5)
+    return scores, previous

@@ -27,7 +27,6 @@ from quant_lab.optimization.net_ir_optimizer import NetIRConstrainedOptimizer
 from quant_lab.regimes import VolTrendRegimeDetector
 from quant_lab.research.asean import _benchmark_row, _equal_weight_benchmark, _markdown_table
 from quant_lab.research.malaysia import _eligible_malaysia_prices, _ewm_benchmark
-from quant_lab.validation.metrics import deflated_sharpe_ratio
 
 
 @dataclass(frozen=True)
@@ -236,7 +235,7 @@ def _failure_reasons(row: pd.Series) -> str:
     if not bool(row.get("constraint_cost_stress_2x_passed", True)):
         reasons.append("2x_cost_stress")
     if not bool(row.get("constraint_deflated_sharpe_passed", True)):
-        reasons.append("deflated_sharpe")
+        reasons.append(row.get("constraint_deflated_sharpe_reason") or "deflated_sharpe")
     if not reasons and row.get("passed_all") is False:
         reasons.append("unspecified_gate")
     return "; ".join(reasons)
@@ -252,10 +251,12 @@ def _refresh_multiple_testing_metrics(
     for row in rows:
         result = dict(row)
         returns = returns_by_key[result["candidate_key"]]
-        dsr = deflated_sharpe_ratio(returns, trial_sharpes=trial_sharpes, periods_per_year=optimizer.periods_per_year)
+        dsr_constraint = optimizer.deflated_sharpe_constraint(returns, trial_sharpes)
+        dsr = dsr_constraint.value
         result["deflated_sharpe"] = dsr
         result["constraint_deflated_sharpe"] = dsr
-        result["constraint_deflated_sharpe_passed"] = dsr >= optimizer.min_deflated_sharpe
+        result["constraint_deflated_sharpe_passed"] = dsr_constraint.passed
+        result["constraint_deflated_sharpe_reason"] = dsr_constraint.reason
 
         violations = [
             max(0.0, optimizer.drawdown_limit - float(result.get("max_drawdown", 0.0))),
@@ -263,7 +264,7 @@ def _refresh_multiple_testing_metrics(
             max(0.0, float(result.get("constraint_max_country_weight", 0.0)) - optimizer.max_country_weight_limit),
             max(0.0, float(result.get("constraint_max_asset_weight", 0.0)) - optimizer.max_asset_weight_limit),
             max(0.0, -float(result.get("constraint_cost_stress_2x", 0.0))),
-            max(0.0, optimizer.min_deflated_sharpe - dsr),
+            dsr_constraint.violation,
         ]
         result["constraint_violation"] = sum(violations)
         result["passed_all"] = all(
@@ -482,7 +483,7 @@ def run_malaysia_full_sweep_from_asean_artifact(
                         prices=eligible_prices,
                         group_map=None,
                         benchmark_returns=benchmark_returns,
-                        trial_sharpes=[],
+                        trial_sharpes=None,
                     )
                 except Exception as exc:
                     failures.append(
