@@ -33,9 +33,9 @@ class PITFeatureSpec:
 def _to_utc_naive(values: pd.Series | pd.Index | list) -> pd.Series:
     converted = pd.to_datetime(values, utc=True, errors="coerce")
     if isinstance(converted, pd.Series):
-        return converted.dt.tz_localize(None)
+        return converted.dt.tz_localize(None).astype("datetime64[ns]")
     if isinstance(converted, pd.DatetimeIndex):
-        return pd.Series(converted.tz_localize(None), index=getattr(values, "index", None))
+        return pd.Series(converted.tz_localize(None).astype("datetime64[ns]"), index=getattr(values, "index", None))
     return pd.Series(converted)
 
 

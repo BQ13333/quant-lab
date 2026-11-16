@@ -85,6 +85,8 @@ def _source_stat_fingerprint(configured: CompletionInputs) -> str:
                 "mtime_ns": details.st_mtime_ns,
                 "ctime_ns": details.st_ctime_ns,
                 "inode": details.st_ino,
+                # Same-size rewrites may share timestamps on coarse filesystems.
+                "sha256": sha256_file(path),
             }
         )
     return semantic_hash(inventory)
@@ -103,6 +105,8 @@ def _package_stat_fingerprint(package: Path) -> str:
                 "mtime_ns": details.st_mtime_ns,
                 "ctime_ns": details.st_ctime_ns,
                 "inode": details.st_ino,
+                # Same-size rewrites may share timestamps on coarse filesystems.
+                "sha256": sha256_file(path),
             }
         )
     return semantic_hash(inventory)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
+import numpy as np
 import pandas as pd
 
 from quant_lab.contracts import SignalFrame
@@ -27,8 +28,16 @@ class EqualWeightEnsembleModel(AlphaModel):
                 horizon=self.horizon,
                 metadata={"family": "equal_weight_ensemble", "models": []},
             )
-        signals = [m.predict(prices, start, end).scores for m in self.models]
+        signals = []
+        for model in self.models:
+            signal = model.predict(prices, start, end)
+            signal.validate_against(prices)
+            if not signal.scores.index.equals(prices.iloc[start:end].index) or not signal.scores.columns.equals(prices.columns):
+                raise ValueError("ensemble signals must align exactly")
+            signals.append(signal.scores)
         combined = sum(signals) / len(signals)
+        if not np.isfinite(combined.to_numpy(dtype=float)).all():
+            raise ValueError("combined ensemble scores must be finite")
         return SignalFrame(
             scores=combined,
             model_name=self.name,
@@ -42,13 +51,18 @@ class EqualWeightEnsembleModel(AlphaModel):
 
 @dataclass
 class WeightedEnsembleModel(AlphaModel):
-    """Weighted average of z-scored signals from a list of models."""
+    """Linear combination of signals with finite signed, unnormalized coefficients.
+
+    Empty models and coefficients explicitly represent cash/no signal.
+    """
 
     models: list[AlphaModel] = field(default_factory=list)
     weights: list[float] = field(default_factory=list)
 
     def predict(self, prices: pd.DataFrame, start: int, end: int) -> SignalFrame:
-        if not self.models or not self.weights:
+        if len(self.models) != len(self.weights) or not np.isfinite(self.weights).all():
+            raise ValueError("weights must be finite and match models exactly")
+        if not self.models:
             empty = pd.DataFrame(
                 0.0, index=prices.iloc[start:end].index, columns=prices.columns
             )
@@ -62,10 +76,18 @@ class WeightedEnsembleModel(AlphaModel):
             raise ValueError(
                 f"models ({len(self.models)}) and weights ({len(self.weights)}) must have the same length"
             )
-        signals = [m.predict(prices, start, end).scores for m in self.models]
+        signals = []
+        for model in self.models:
+            signal = model.predict(prices, start, end)
+            signal.validate_against(prices)
+            if not signal.scores.index.equals(prices.iloc[start:end].index) or not signal.scores.columns.equals(prices.columns):
+                raise ValueError("ensemble signals must align exactly")
+            signals.append(signal.scores)
         combined = pd.DataFrame(0.0, index=signals[0].index, columns=signals[0].columns)
         for s, w in zip(signals, self.weights):
             combined += s * w
+        if not np.isfinite(combined.to_numpy(dtype=float)).all():
+            raise ValueError("combined ensemble scores must be finite")
         return SignalFrame(
             scores=combined,
             model_name=self.name,
@@ -111,6 +133,8 @@ class RegimeWeightedEnsembleModel(AlphaModel):
                     break
             if not matched:
                 combined.loc[idx] = 0.0
+        if not np.isfinite(combined.to_numpy(dtype=float)).all():
+            raise ValueError("combined ensemble scores must be finite")
         return SignalFrame(
             scores=combined,
             model_name=self.name,

@@ -104,3 +104,26 @@ def test_run_malaysia_full_sweep_from_asean_artifact_smoke(tmp_path):
     assert result.artifact_dir.joinpath("killed_strategies.csv").exists()
     assert result.artifact_dir.joinpath("sweep_manifest.json").exists()
     assert result.note_paths
+
+
+def test_refresh_rejects_zero_variance_without_dropping_candidate():
+    from quant_lab.optimization.net_ir_optimizer import NetIRConstrainedOptimizer
+    from quant_lab.research.malaysia_sweep import _refresh_multiple_testing_metrics
+
+    # A zero threshold must not turn invalid evidence into a passing DSR.
+    frame = _refresh_multiple_testing_metrics(
+        [{
+            "candidate_key": "flat", "net_ir": 0., "net_sharpe": 0.,
+            **{f"constraint_{name}_passed": True for name in (
+                "max_drawdown", "turnover", "max_country_weight",
+                "max_asset_weight", "cost_stress_2x",
+            )},
+        }], {"flat": pd.Series([0.] * 20)}, [0.],
+        NetIRConstrainedOptimizer(min_deflated_sharpe=0.),
+    )
+    assert len(frame) == 1
+    assert not frame.loc[0, "passed_all"]
+    assert not frame.loc[0, "constraint_deflated_sharpe_passed"]
+    assert np.isnan(frame.loc[0, "deflated_sharpe"])
+    assert frame.loc[0, "score"] == -np.inf
+    assert "positive finite variance" in frame.loc[0, "failure_reasons"]

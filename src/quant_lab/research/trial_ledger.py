@@ -76,6 +76,12 @@ class EvidenceRecord:
     size_bytes: int
 
 
+def _check_reservation_identity(row, item):
+    for field, value in item.items():
+        if row[field] != value:
+            raise RuntimeError("existing reservation identity drifted: " + field)
+
+
 class TrialLedger:
     """Transactional, append-oriented lifetime experiment registry."""
 
@@ -205,6 +211,7 @@ class TrialLedger:
                 "SELECT * FROM trials WHERE idempotency_key = ?", (idempotency_key,)
             ).fetchone()
             if existing is not None:
+                _check_reservation_identity(existing, {'idempotency_key': idempotency_key, 'campaign': campaign, 'family': family, 'hypothesis_id': hypothesis_id, 'candidate_id': candidate_id, 'parent_trial_id': parent_trial_id, 'code_hash': code_hash, 'data_hash': data_hash, 'config_hash': config_hash, 'prompt_hash': prompt_hash, 'model_hash': model_hash})
                 connection.commit()
                 return TrialReservation(
                     existing["trial_id"],
@@ -326,11 +333,7 @@ class TrialLedger:
                 reservations: list[TrialReservation] = []
                 for item in normalized:
                     row = existing_rows[str(item["idempotency_key"])]
-                    for field in required - {"parent_trial_id"}:
-                        if row[field] != item[field]:
-                            raise RuntimeError("existing atomic reservation identity drifted")
-                    if row["parent_trial_id"] != item["parent_trial_id"]:
-                        raise RuntimeError("existing atomic reservation parent drifted")
+                    _check_reservation_identity(row, item)
                     reservations.append(
                         TrialReservation(
                             row["trial_id"],
@@ -1121,6 +1124,10 @@ class TrialLedger:
             raise
         finally:
             connection.close()
+
+    def snapshot(self):
+        from .trial_snapshot import take_snapshot
+        return take_snapshot(self)
 
     def lifetime_counts(self, *, campaign: str | None = None, family: str | None = None) -> dict[str, int]:
         clauses: list[str] = []

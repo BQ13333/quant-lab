@@ -1,19 +1,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 import numpy as np
 import pandas as pd
 
 
+class RegimeValue(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    TREND_UP = "trend_up"
+    TREND_DOWN = "trend_down"
+    LOW_VOL = "low_vol"
+    MID_VOL = "mid_vol"
+    HIGH_VOL = "high_vol"
+    HIGH_CORR = "high_corr"
+    NORMAL_CORR = "normal_corr"
+
+    def __str__(self) -> str:
+        return self.value
+
+
 @dataclass(frozen=True)
 class RegimeState:
-    trend: str
-    volatility: str
-    correlation: str
+    trend: RegimeValue
+    volatility: RegimeValue
+    correlation: RegimeValue
 
     @property
     def label(self) -> str:
+        if RegimeValue.UNKNOWN in (self.trend, self.volatility, self.correlation):
+            return RegimeValue.UNKNOWN.value
         return f"{self.trend}_{self.volatility}_{self.correlation}"
 
 
@@ -27,7 +44,9 @@ class VolTrendRegimeDetector:
         returns = prices.pct_change().fillna(0.0)
         market = returns.mean(axis=1)
 
-        trend_signal = prices.mean(axis=1).pct_change(self.trend_lookback)
+        # Equal-weight, daily rebalanced market index is independent of price units.
+        market_index = (1.0 + market).cumprod()
+        trend_signal = market_index.pct_change(self.trend_lookback)
         realized_vol = market.rolling(self.volatility_lookback).std() * np.sqrt(252)
         avg_corr = returns.rolling(self.correlation_lookback).corr().groupby(level=0).mean().mean(axis=1)
 
@@ -37,27 +56,27 @@ class VolTrendRegimeDetector:
 
         labels = []
         for idx in prices.index:
-            trend = "trend_up" if trend_signal.loc[idx] > 0 else "trend_down"
-            if pd.isna(trend_signal.loc[idx]):
-                trend = "unknown_trend"
+            trend = RegimeValue.TREND_UP if trend_signal.loc[idx] > 0 else RegimeValue.TREND_DOWN
+            if not np.isfinite(trend_signal.loc[idx]):
+                trend = RegimeValue.UNKNOWN
 
             vol_value = realized_vol.loc[idx]
-            if pd.isna(vol_value):
-                volatility = "unknown_vol"
+            if not np.isfinite([vol_value, vol_low.loc[idx], vol_high.loc[idx]]).all():
+                volatility = RegimeValue.UNKNOWN
             elif vol_value <= vol_low.loc[idx]:
-                volatility = "low_vol"
+                volatility = RegimeValue.LOW_VOL
             elif vol_value >= vol_high.loc[idx]:
-                volatility = "high_vol"
+                volatility = RegimeValue.HIGH_VOL
             else:
-                volatility = "mid_vol"
+                volatility = RegimeValue.MID_VOL
 
             corr_value = avg_corr.loc[idx]
-            if pd.isna(corr_value):
-                correlation = "unknown_corr"
+            if not np.isfinite([corr_value, corr_high.loc[idx]]).all():
+                correlation = RegimeValue.UNKNOWN
             elif corr_value >= corr_high.loc[idx]:
-                correlation = "high_corr"
+                correlation = RegimeValue.HIGH_CORR
             else:
-                correlation = "normal_corr"
+                correlation = RegimeValue.NORMAL_CORR
 
             labels.append(RegimeState(trend, volatility, correlation).label)
 

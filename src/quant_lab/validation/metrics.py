@@ -88,23 +88,39 @@ def sharpe_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 2
 
 
 def sortino_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 252) -> float:
+    """Annualised Sortino ratio using downside deviation about zero.
+
+    Downside deviation is ``sqrt(mean(min(r, 0)^2))`` over the full sample,
+    including zeros and positive returns, not the sample standard deviation
+    of the negative observations only.
+    """
+
     series = _clean_returns(returns)
-    downside = series[series < 0]
-    if len(downside) < 2:
+    if len(series) < 2:
         return 0.0
-    downside_vol = downside.std(ddof=1)
-    if downside_vol == 0 or np.isnan(downside_vol):
+    downside_dev = math.sqrt(float(np.mean(np.minimum(series.to_numpy(dtype=float), 0.0) ** 2)))
+    if not math.isfinite(downside_dev) or downside_dev == 0.0:
+        mean = float(series.mean())
+        if mean > 0.0:
+            return math.inf
         return 0.0
-    return float(series.mean() / downside_vol * math.sqrt(periods_per_year))
+    return float(series.mean() / downside_dev * math.sqrt(periods_per_year))
 
 
 def max_drawdown(returns: pd.Series | Sequence[float]) -> float:
+    """Peak-to-trough drawdown, including a loss on the first period.
+
+    Equity is started at 1.0 *before* applying the first return, so a path
+    that opens with a loss (for example ``[-0.2, 0.1]``) reports -0.20 rather
+    than 0.0.
+    """
+
     series = _clean_returns(returns)
     if series.empty:
         return 0.0
-    equity = (1.0 + series).cumprod()
-    drawdown = equity / equity.cummax() - 1.0
-    return float(drawdown.min())
+    equity = np.concatenate(([1.0], (1.0 + series.to_numpy(dtype=float)).cumprod()))
+    drawdown = equity / np.maximum.accumulate(equity) - 1.0
+    return float(np.min(drawdown))
 
 
 def calmar_ratio(returns: pd.Series | Sequence[float], periods_per_year: int = 252) -> float:
@@ -130,24 +146,22 @@ def probabilistic_sharpe_ratio(
     units, while the test statistic is computed in per-period units.
     """
 
-    series = _clean_returns(returns)
+    series = pd.Series(returns, dtype=float)
     n = len(series)
-    if n < 3:
-        return 0.0
+    if n < 4 or not np.isfinite(series).all() or not np.isfinite(benchmark_sr) or not np.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("PSR requires finite returns, benchmark and at least four observations")
+    if not np.isfinite(series.std(ddof=1)) or series.std(ddof=1) <= 0:
+        raise ValueError("PSR requires positive finite variance")
 
     sr_period = sharpe_ratio(series, periods_per_year=1)
     benchmark_period = benchmark_sr / math.sqrt(periods_per_year)
     series_skew = float(series.skew())
     series_kurtosis = float(series.kurt()) + 3.0
 
-    denominator = math.sqrt(
-        max(
-            1e-12,
-            1.0
-            - series_skew * sr_period
-            + ((series_kurtosis - 1.0) / 4.0) * (sr_period**2),
-        )
-    )
+    adjustment = 1.0 - series_skew * sr_period + ((series_kurtosis - 1.0) / 4.0) * sr_period**2
+    if not np.isfinite([sr_period, series_skew, series_kurtosis, adjustment]).all() or adjustment <= 0:
+        raise ValueError("PSR requires finite moments and positive adjustment")
+    denominator = math.sqrt(adjustment)
     z_score = (sr_period - benchmark_period) * math.sqrt(n - 1) / denominator
     return float(_normal_cdf(z_score))
 
@@ -156,19 +170,28 @@ def deflated_sharpe_ratio(
     returns: pd.Series | Sequence[float],
     trial_sharpes: Sequence[float],
     periods_per_year: int = 252,
+    *,
+    n_trials: int | None = None,
 ) -> float:
-    """Estimate Sharpe confidence after correcting for multiple trials."""
+    """Estimate confidence using observed dispersion and a separate charged count."""
 
-    valid_trials = np.asarray([x for x in trial_sharpes if np.isfinite(x)], dtype=float)
+    if not np.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be positive and finite")
+    valid_trials = np.asarray(trial_sharpes, dtype=float)
+    trials = len(valid_trials) if n_trials is None else n_trials
+    if type(trials) is not int or trials < max(1, len(valid_trials)):
+        raise ValueError("charged trials must cover observed trials")
+    if valid_trials.ndim != 1 or not np.isfinite(valid_trials).all():
+        raise ValueError("trial Sharpes must be finite")
+    if trials == 1 and len(valid_trials) == 1:
+        return probabilistic_sharpe_ratio(returns, periods_per_year=periods_per_year)
     if len(valid_trials) < 2:
-        return probabilistic_sharpe_ratio(returns, benchmark_sr=0.0, periods_per_year=periods_per_year)
-
+        raise ValueError("multiple trials require observed dispersion evidence")
     trials_period = valid_trials / math.sqrt(periods_per_year)
     trial_std = float(np.std(trials_period, ddof=1))
-    if trial_std == 0 or np.isnan(trial_std):
-        return probabilistic_sharpe_ratio(returns, benchmark_sr=0.0, periods_per_year=periods_per_year)
+    if not np.isfinite(trial_std) or trial_std <= 0:
+        raise ValueError("multiple trials require positive finite dispersion")
 
-    trials = len(trials_period)
     euler_gamma = 0.5772156649015329
     expected_max_noise_sr = trial_std * (
         (1.0 - euler_gamma) * _normal_ppf(1.0 - 1.0 / trials)

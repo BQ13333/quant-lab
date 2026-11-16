@@ -1,0 +1,199 @@
+{
+  "MY": {
+    "stamp_unit": [
+      {
+        "value": 1000,
+        "effective_from": "2023-07-13",
+        "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf",
+        "source_kind": "PRIMARY",
+        "effective_until": "2028-07-12"
+      }
+    ],
+    "stamp_per_unit": [
+      {
+        "value": 1,
+        "effective_from": "2023-07-13",
+        "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf",
+        "source_kind": "PRIMARY",
+        "effective_until": "2028-07-12"
+      }
+    ],
+    "stamp_cap": [
+      {
+        "value": 1000,
+        "effective_from": "2023-07-13",
+        "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf",
+        "source_kind": "PRIMARY",
+        "effective_until": "2028-07-12"
+      }
+    ],
+    "clearing_rate": [
+      {
+        "value": 0.0003,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "clearing_cap": [
+      {
+        "value": 1000,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "board_lot": [
+      {
+        "value": 100,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "tick_below_1": [
+      {
+        "value": 0.005,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot",
+        "source_kind": "PRIMARY"
+      }
+    ]
+  },
+  "HK": {
+    "stamp_rate": [
+      {
+        "value": 0.001,
+        "effective_from": "2023-11-17",
+        "source_url": "https://www.ird.gov.hk/eng/ppr/archives/23111501.htm",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "trading_rate": [
+      {
+        "value": 5.65e-05,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "sfc_rate": [
+      {
+        "value": 2.7e-05,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "afrc_rate": [
+      {
+        "value": 1.5e-06,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "settlement_rate": [
+      {
+        "value": 2e-05,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "settlement_min": [
+      {
+        "value": 2,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "settlement_cap": [
+      {
+        "value": 100,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "board_lot": [
+      {
+        "value": null,
+        "effective_from": "2026-11-16",
+        "source_url": "",
+        "source_kind": "NONE"
+      }
+    ]
+  },
+  "CN": {
+    "stamp_rate": [
+      {
+        "value": 0.0005,
+        "effective_from": "2023-08-28",
+        "source_url": "https://m.mof.gov.cn/czxw/202308/t20230827_3904226.htm",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "handling_rate": [
+      {
+        "value": null,
+        "effective_from": "2026-11-16",
+        "source_url": "",
+        "source_kind": "NONE"
+      }
+    ],
+    "management_rate": [
+      {
+        "value": null,
+        "effective_from": "2026-11-16",
+        "source_url": "",
+        "source_kind": "NONE"
+      }
+    ],
+    "transfer_rate": [
+      {
+        "value": null,
+        "effective_from": "2026-11-16",
+        "source_url": "",
+        "source_kind": "NONE"
+      }
+    ],
+    "st_band": [
+      {
+        "value": 0.05,
+        "effective_from": "2026-04-24",
+        "source_url": [
+          "https://www.cnstock.com/commonDetail/737124",
+          "https://stcn.com/article/detail/3999724.html"
+        ],
+        "source_kind": "SECONDARY"
+      },
+      {
+        "value": 0.1,
+        "effective_from": "2026-07-06",
+        "source_url": [
+          "https://www.cnstock.com/commonDetail/737124",
+          "https://stcn.com/article/detail/3999724.html"
+        ],
+        "source_kind": "SECONDARY"
+      }
+    ],
+    "main_board_lot": [
+      {
+        "value": 100,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf",
+        "source_kind": "PRIMARY"
+      }
+    ],
+    "sell_delay_sessions": [
+      {
+        "value": 1,
+        "effective_from": "2026-11-16",
+        "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf",
+        "source_kind": "PRIMARY"
+      }
+    ]
+  }
+}

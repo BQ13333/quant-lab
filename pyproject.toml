@@ -92,3 +92,6 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.setuptools.package-data]
+"quant_lab.markets" = ["rules_v1.json"]

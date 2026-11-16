@@ -43,7 +43,10 @@ def test_pbo_cscv_deterministic_stable_and_regime_flip_fixtures():
         blocks.append(np.column_stack([first + noise, -first - noise, noise * 0.1]))
     regime_flip = np.vstack(blocks)
     assert probability_of_backtest_overfitting(stable, n_splits=4, strict=True) == 0.0
-    assert probability_of_backtest_overfitting(regime_flip, n_splits=4, strict=True) == pytest.approx(1 / 3)
+    # Mixed-block Sharpes are [0, 0, ~6e-16]: a 3-way numerical near-tie, mid-rank 0.5
+    # (overfit) on 4 of 6 paths, plus 2 genuine OOS reversals. PBO is therefore 1.0,
+    # not 1/3 (the 1/3 figure treated 6e-16 as strictly better than 0).
+    assert probability_of_backtest_overfitting(regime_flip, n_splits=4, strict=True) == pytest.approx(1.0)
 
 
 def test_pbo_strict_insufficient_evidence_raises():
@@ -59,7 +62,7 @@ def test_deflated_sharpe_probability_bounds():
 
 def test_multiple_comparison_bonferroni():
     sharpes = [0.5, 0.3, 1.2, 0.1, -0.2]
-    adj = multiple_comparison_adjustment(sharpes, method="bonferroni")
+    adj = multiple_comparison_adjustment(sharpes, method="bonferroni", n_observations=252)
     assert len(adj) == 5
     assert (adj <= 1.0).all()
     # Bonferroni should be >= raw p-values
@@ -68,14 +71,14 @@ def test_multiple_comparison_bonferroni():
 
 def test_multiple_comparison_holm():
     sharpes = [0.5, 0.3, 1.2, 0.1, -0.2]
-    adj = multiple_comparison_adjustment(sharpes, method="holm")
+    adj = multiple_comparison_adjustment(sharpes, method="holm", n_observations=252)
     assert len(adj) == 5
     assert (adj <= 1.0).all()
 
 
 def test_multiple_comparison_fdr_bh():
     sharpes = [0.5, 0.3, 1.2, 0.1, -0.2]
-    adj = multiple_comparison_adjustment(sharpes, method="fdr_bh")
+    adj = multiple_comparison_adjustment(sharpes, method="fdr_bh", n_observations=252)
     assert len(adj) == 5
     assert (adj <= 1.0).all()
 
