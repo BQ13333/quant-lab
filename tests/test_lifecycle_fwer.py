@@ -1,5 +1,8 @@
 import pytest
 from quant_lab.lifecycle.fwer import *
+from quant_lab.lifecycle.fwer import calibrate as _calibrate
+def calibrate(*args, **kwargs):
+    return _calibrate(*args, seed_registry=SeedRegistry(), **kwargs)
 
 
 def test_independent_validation_interval():
@@ -47,3 +50,30 @@ def test_block_bootstrap_null_supported():
 def test_false_pause_rate_reported():
     r=calibrate(Policy(),[1],[2,3],months=12,family_size=1)
     assert r.false_pause.replicates == 2 and 'False-pause rate' in r.report()
+
+
+def test_family_and_per_sleeve_pause_rates_have_separate_denominators():
+    a,b=pause_rates(Policy(),[1,2],months=2,family_size=3)
+    assert a.replicates == 2 and b.replicates == 6
+
+def test_report_states_null_scope():
+    r=calibrate(Policy(),[1],[2],months=1,family_size=1)
+    assert 'IC-only null' in r.report() and 'operational triggers' in r.report()
+
+def test_validation_seeds_cannot_be_reused_after_retune():
+    registry=SeedRegistry()
+    registry.consume([1,2],Policy())
+    with pytest.raises(ValueError): registry.consume([2,3],replace(Policy(),pause_h=9))
+
+
+def test_seed_registry_survives_restart(tmp_path):
+    path=tmp_path/'seeds.json'
+    SeedRegistry(path).consume([1],Policy())
+    with pytest.raises(ValueError): SeedRegistry(path).consume([1],replace(Policy(),pause_h=9))
+
+
+def test_validation_minimum_and_five_percent_cannot_be_loosened():
+    r=calibrate(Policy(),[1],[2],months=1,family_size=1)
+    assert not replace(r,min_validation=1,validation=binomial_rate(0,100)).passed
+    assert not replace(r,target=.9,validation=binomial_rate(81,2000)).passed
+    assert replace(r,validation=binomial_rate(80,2000)).passed

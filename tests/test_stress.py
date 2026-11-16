@@ -59,7 +59,7 @@ def test_country_crisis_slices():
     returns = _make_returns()
     weights = pd.DataFrame(np.ones((len(returns), 3)) / 3, index=returns.index, columns=["a", "b", "c"])
     group_map = pd.Series({"a": "USA", "b": "UK", "c": "JPN"})
-    result = country_crisis_slices(returns, weights, group_map, crisis_countries=["USA", "UK"])
+    result = country_crisis_slices(pd.DataFrame({c:returns for c in weights.columns}), weights, group_map, crisis_countries=["USA", "UK"])
     assert "USA" in result
     assert "UK" in result
 
@@ -96,3 +96,21 @@ def test_no_single_country_dominance_passes():
 def test_no_single_month_dominance_passes():
     returns = _make_returns(n=200)
     assert no_single_month_dominance(returns, max_month_contribution=0.3) == True
+
+
+def test_excluding_only_profitable_country_changes_pnl():
+    r=pd.DataFrame({'a':[.1]*4,'b':[-.01]*4})
+    w=pd.DataFrame(.5,index=r.index,columns=r.columns)
+    result=country_crisis_slices(r,w,pd.Series({'a':'MY','b':'HK'}),['MY'])
+    assert result['MY']['mean_return']==pytest.approx(-.005*252)
+
+def test_three_negative_months_streak_is_3():
+    r=pd.Series([-.1,-.1,-.1,.1],index=pd.date_range('2020-01-01',periods=4,freq='MS'))
+    assert monthly_stability(r).longest_negative_streak.iloc[0]==3
+
+@pytest.mark.parametrize('statistic',['mean','sharpe','drawdown'])
+def test_bootstrap_point_matches_statistic(statistic):
+    from quant_lab.validation.metrics import sharpe_ratio,max_drawdown
+    r=_make_returns(30)
+    expected={'mean':r.mean()*252,'sharpe':sharpe_ratio(r),'drawdown':max_drawdown(r)}[statistic]
+    assert bootstrap_confidence_interval(r,statistic,n_bootstrap=8)[2]==pytest.approx(expected)

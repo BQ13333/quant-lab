@@ -23,6 +23,7 @@ class FloorReport:
     binding_constraint: str
     status: str = 'FEASIBLE'
     reason: str = ''
+    label: str = 'NECESSARY_ONLY'
 
     def require_nav(self, nav):
         if not math.isfinite(nav) or self.status != 'FEASIBLE' or nav < self.minimum_nav:
@@ -60,3 +61,90 @@ def min_nav(weights, tickets_myr, limits=Limits()):
         constraints[f'sleeve {i}: child_min_ticket'] = ticket*children*limits.names/w
     binding = max(constraints, key=constraints.get)
     return FloorReport(constraints[binding], binding)
+
+@dataclass(frozen=True)
+class Instrument:
+    price: float
+    lot_size: int
+    min_ticket: float
+    adv: float
+    fx: float
+
+@dataclass(frozen=True)
+class StageConstruction:
+    stage: float
+    names: tuple[str, ...]
+    target_values: tuple[float, ...]  # NAV currency, at this stage
+
+@dataclass(frozen=True)
+class StageLimits:
+    participation: float
+    weight_tolerance: float
+    cost_rate: float
+    order_cap_pct: float = .02
+
+@dataclass(frozen=True)
+class StageReport:
+    stage: float
+    status: str
+    reasons: tuple[str, ...]
+    quantities: tuple[tuple[str, int], ...]
+    children: tuple[tuple[str, tuple[int, ...]], ...]
+    total_cost: float
+    execution_limits: tuple = ()  # name, min shares, max daily shares, lot shares
+
+    @property
+    def passed(self):
+        return self.status == 'FEASIBLE'
+
+
+def stage_feasibility(construction, instruments, nav, cash, reserves, limits):
+    """Check lots, daily children, aggregate participation, costs and cash jointly.
+
+    ADV and tickets are in instrument currency. Weight tolerance is relative to
+    each target value; cash, reserves and target values are in NAV currency.
+    """
+    c = construction
+    scalars = (nav, cash, reserves, limits.participation, limits.weight_tolerance,
+               limits.cost_rate, limits.order_cap_pct, c.stage)
+    if any(not math.isfinite(x) for x in scalars) or nav <= 0 or min(cash, reserves, limits.cost_rate, limits.weight_tolerance) < 0 or not 0 < limits.participation <= 1 or not 0 < limits.order_cap_pct <= .02 or not 0 < c.stage <= 1 or not c.names or len(set(c.names)) != len(c.names) or len(c.names) != len(c.target_values):
+        raise ValueError('invalid stage inputs')
+    reasons, quantities, children = [], [], []
+    total = 0.
+    execution_limits = []
+    for name, target in zip(c.names, c.target_values):
+        if name not in instruments:
+            reasons.append(f'{name}: missing instrument'); continue
+        i = instruments[name]
+        if any(not math.isfinite(x) or x <= 0 for x in (target, i.price, i.lot_size, i.min_ticket, i.adv, i.fx)) or type(i.lot_size) is not int:
+            raise ValueError('invalid instrument/target')
+        lot = i.price * i.lot_size * i.fx
+        lots = math.floor(target / lot + 1e-12)
+        value = lots * lot
+        quantities.append((name, lots * i.lot_size))
+        # Both constraints apply to the sum of children on each session.
+        max_lots = math.floor(min(nav * limits.order_cap_pct, i.adv * i.fx * limits.participation) / lot)
+        min_lots = math.ceil(i.min_ticket * i.fx / lot - 1e-12)
+        execution_limits.append((name, min_lots*i.lot_size, max_lots*i.lot_size, i.lot_size))
+        if not lots or max_lots < min_lots:
+            reasons.append(f'{name}: ticket/participation/order cap'); continue
+        n = math.ceil(lots / max_lots)
+        base, extra = divmod(lots, n)
+        chunks = tuple((base + (j < extra)) * i.lot_size for j in range(n))
+        if base < min_lots:
+            reasons.append(f'{name}: child below ticket')
+        if abs(value - target) / target > limits.weight_tolerance + 1e-12:
+            reasons.append(f'{name}: lot rounding exceeds weight tolerance')
+        children.append((name, chunks))
+        total += value * (1 + limits.cost_rate)
+    if total + reserves > cash + 1e-8:
+        reasons.append('cash: costs plus reserves exceed cash')
+    return StageReport(c.stage, 'INFEASIBLE' if reasons else 'FEASIBLE', tuple(reasons), tuple(quantities), tuple(children), total, tuple(execution_limits))
+
+
+def first_feasible_stage(plan, instruments, nav, cash, reserves, limits):
+    reports = tuple(stage_feasibility(c, instruments, nav, cash, reserves, limits) for c in plan)
+    passing = [r.stage for r in reports if r.passed]
+    if not passing:
+        raise ValueError('INFEASIBLE: no executable stage')
+    return min(passing)

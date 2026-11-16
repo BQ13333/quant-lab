@@ -22,6 +22,13 @@ from quant_lab.models.zoo import (
 )
 
 
+ALLOWED_MARKETS = {'MY', 'CN', 'HK'}
+
+def require_admission_markets(markets):
+    if not markets or not set(markets) <= ALLOWED_MARKETS:
+        raise ValueError('out-of-scope admission market')
+
+
 SignalProfile = Literal["lite", "slow", "full"]
 
 
@@ -40,6 +47,7 @@ class SignalFactoryConfig:
     profile: SignalProfile = "slow"
     include_group_models: bool = True
     groups: pd.Series | None = None
+    admission_markets: tuple[str, ...] | None = None
 
 
 def build_signal_models(config: SignalFactoryConfig) -> list[AlphaModel]:
@@ -50,6 +58,10 @@ def build_signal_models(config: SignalFactoryConfig) -> list[AlphaModel]:
     research probes but should be held to stricter multiple-testing penalties.
     """
 
+    if config.profile not in {'lite','slow','full'}:
+        raise ValueError('unknown signal profile')
+    if config.admission_markets is not None:
+        require_admission_markets(config.admission_markets)
     prefix = config.prefix
     models: list[AlphaModel] = []
 

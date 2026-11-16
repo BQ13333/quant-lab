@@ -42,7 +42,8 @@ bootstrap certification of half-life. Page–Hinkley is optional and omitted.
 signed proposed trade values in NAV currency. Unknown economic classifications
 count as CNY-economic. CNY-economic (45%) and foreign (60%) caps both bind.
 Open buys consume headroom; unfilled sells never create headroom for new buys.
-Sells pass unchanged, buys round down in instrument lots and drop below the
+Sells pass the exposure check only. `inventory.check_executable` reserves settled
+stock and blocks suspension/unknown rules; buys round down in instrument lots and drop below the
 minimum ticket. Existing breaches return required sell values per overlapping
 bucket rather than raising. `check_exposure_cap` is a legacy bucket adapter.
 
@@ -50,15 +51,28 @@ bucket rather than raising. `check_exposure_cap` is a legacy bucket adapter.
 advances exactly one registered stage in KEEP/RAMP, and prevents approval reuse.
 `Sleeve.from_monitor` carries the monitor weight, ramp ceiling, permission and
 operational ceiling into allocation; manually constructed sleeves cannot allocate.
-`feasibility` computes pilot/child-order floors and offers `FloorReport.require_nav`
-for admission. Paper-engine wiring is the plan's P1 integration task.
+`feasibility` labels scalar floors NECESSARY_ONLY and checks actual stage lots,
+child tickets, daily participation, cash, costs and reserves. Ramp advancement
+and re-entry require matching stage reports bound into the human signature.
+`paper.engine.PaperEngine` requires a passing report and calls both exposure and
+inventory checks. Partial fills and cancelled remainders reconcile to holdings.
 
-`allocator` uses discounted full-information shadow observations, a fixed Normal
-prior, and seeded Thompson draws. Floors/caps, cash, and L1 sleeve turnover are
-explicit. When liquidation requirements and turnover are incompatible it raises
-an infeasibility error; a caller must explicitly choose a liquidation budget.
-The inverse-variance baseline uses the same bounds. Synthetic superiority is a
-test of adaptation in the specified scenario, not a universal superiority claim.
+`allocator.default_allocate` is deterministic inverse variance. Mandatory cap
+cuts precede the discretionary turnover budget. Thompson output is a distinct
+shadow-only type refused by `book_weights`; `ExperimentalArm` reserves and logs
+its trials in the global ledger. The legacy IC demo also uses the default.
+
+`events.EventStore.evaluate` / `LifecycleRunner` persist every operational
+monthly result, including blocked decisions, in a hash-chained JSONL journal.
+`replay` verifies continuity and reconstructs the state. Pure `monitor.evaluate`
+is retained for synthetic numerical work; it cannot supply an operational
+journal. Retirements and re-entry retain Ed25519 human authorization.
+
+`sim_returns` uses annual return/covariance inputs, correlated monthly active
+returns, actual weight drift, turnover costs and deterministic allocation.
+Ramp events use real signature verification. Annual Poisson births are research
+proposals only, never automatic admissions; simulation is not a book forecast
+or evidence of allocator adoption. Paused sleeves do not count as live.
 
 `renewal` implements Little's law, exponential family survival, equicorrelation
 IR, the inverse birth-rate calculation, and a Gaussian discovery-funnel haircut.
@@ -74,8 +88,11 @@ no unregistered regime sizing rule is introduced here.
 finite horizon. It searches a fixed policy grid on calibration seeds and runs
 one independent validation seed set, returning a two-sided 95% Clopper–Pearson
 interval. Pass requires the validation upper bound at or below the target and at least
-`min_validation` replicates (default 2,000). A failed grid search or insufficient
-validation remains `NOT_CALIBRATED`. False-pause rates are reported separately.
+max(2,000, `min_validation`) replicates. A failed grid search or insufficient
+validation remains `NOT_CALIBRATED`. Family and per-sleeve false-pause rates use separate denominators. The
+per-sleeve interval uses independent replicate fractions (Hoeffding), since
+correlated sleeves are not independent binomial trials. The default seed
+registry persists under runs/ and binds the full null protocol.
 Nulls include Gaussian AR(1) and centered circular block bootstrap histories;
 register the corresponding `Policy.psi`. This is an empirical finite-horizon
 calibration, not a guarantee beyond the registered null and horizon.

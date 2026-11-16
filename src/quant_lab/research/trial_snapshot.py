@@ -14,6 +14,12 @@ class LedgerSnapshot:
     taken_at: str
 
     @property
+    def charged_count(self):
+        # Reservations are charged conservatively, even before evaluation. Raw
+        # exploration trials and legacy attempts are never cluster-discounted.
+        return self.global_count
+
+    @property
     def sharpes(self):
         return tuple(value for _,value in self.dispersion_receipt)
 

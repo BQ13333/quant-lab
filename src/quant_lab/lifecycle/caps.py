@@ -51,7 +51,7 @@ class ExposureCheck:
 def check_exposure(holdings, open_orders, proposed, nav, caps=None, min_ticket=0.):
     """Reserve buys without crediting unfilled sells; overlapping caps both bind.
 
-    Sell instructions are preserved. Proposed sells do not fund buys until filled.
+    Sells pass the exposure check only; this is not order approval. Proposed sells do not fund buys until filled.
     required_sell_value reports outstanding breach by bucket (do not sum overlaps).
     """
     caps = {'CNY_ECONOMIC': .45, 'FOREIGN': .60} if caps is None else dict(caps)

@@ -111,8 +111,10 @@ def test_reentry_requires_approval_and_resets_ramp(tmp_path, monkeypatch):
     from quant_lab.lifecycle.approval import monitor_evidence
     inputs=monthly_inputs(Value(.05),cost=Value(1.))
     calendar=ScheduleCalendar(tuple((n,1 if n=='cost' else c,2 if n=='cost' else f) for n,c,f in ScheduleCalendar().cadence))
-    authorization=authorize(r[-1].state,monitor_evidence(inputs,calendar,POLICY,True,False,None),tmp_path,monkeypatch)
-    result=evaluate(r[-1].state,inputs,calendar,POLICY,approve_reentry=True,approval_id='APR-001',authorization=authorization)
+    from test_lifecycle_ramp import RampPlan
+    plan=RampPlan()
+    authorization=authorize(r[-1].state,monitor_evidence(inputs,calendar,POLICY,True,False,plan),tmp_path,monkeypatch)
+    result=evaluate(r[-1].state,inputs,calendar,POLICY,approve_reentry=True,approval_id='APR-001',authorization=authorization,ramp_plan=plan)
     assert result.state.lifecycle == Lifecycle.RAMP and result.target == POLICY.first_ramp
     assert result.state.ramp_cap == POLICY.first_ramp
     early = run([.05]*5, state=MonitorState(weight=.1, ramp_cap=.1))

@@ -97,7 +97,7 @@ def monthly_schedule(*, ic: Expectation = Expectation.DUE, cost_due: bool = Fals
         capacity=Expectation.DUE, mechanism_broken=Expectation.DUE, halt=Expectation.DUE).items()))
 
 
-def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: ScheduleCalendar,
+def _evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: ScheduleCalendar,
              policy: Policy = Policy(), *, ops_cap: float = 1.,
              approve_reentry: bool = False, approve_retirement: bool = False, approval_id: str | None = None, ramp_plan=None, authorization=None) -> Evaluation:
     """One calendar step; hard safety caps override the soft weight step limit.
@@ -123,6 +123,10 @@ def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: Sche
         if approve_reentry or approve_retirement:
             from .approval import require_human_approval, monitor_evidence
             require_human_approval(approval_id, authorization, approval_state, monitor_evidence(inputs,calendar,policy,approve_reentry,approve_retirement,ramp_plan))
+        if approve_reentry:
+            from .ramp import require_feasible_plan
+            if ramp_plan is None: raise ValueError('feasible re-entry plan required')
+            require_feasible_plan(ramp_plan, ramp_plan.first_feasible)
         policy.validate()
         finite(state.cusum, state.weight, state.ramp_cap, state.observations, ops_cap)
         if state.cusum < 0 or not 0 <= state.weight <= 1 or not 0 <= state.ramp_cap <= 1 or not 0 <= ops_cap <= 1:
@@ -158,7 +162,7 @@ def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: Sche
     except (ValueError, TypeError, OverflowError):
         failures = tuple(f for f in state.failures if f > t-policy.gap_window) + (t,)
         pause = state.consecutive_failures+1 >= policy.gap_consecutive or len(failures) >= policy.gap_count
-        life = Lifecycle.PAUSE if pause else state.lifecycle
+        life = Lifecycle.PAUSE if pause and state.lifecycle not in (Lifecycle.CANDIDATE,Lifecycle.VALIDATED,Lifecycle.PAPER) else state.lifecycle
         failed = replace(state, calendar=t, failures=failures, consecutive_failures=state.consecutive_failures+1,
                          recovery=0, shadow=0, lifecycle=life, weight=0. if pause else state.weight,
                          paused=state.paused+int(life == Lifecycle.PAUSE))
@@ -171,7 +175,7 @@ def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: Sche
     pause = (stat and n >= policy.pause_n and ((s > policy.pause_h and posterior.p_net < policy.pause_net) or posterior.p_net < policy.hard_pause_net)) or d > policy.dd_pause*policy.te or (c is not None and c > policy.cost_pause) or broken or q < policy.floor
     reduce = (stat and n >= policy.reduce_n and s > policy.reduce_h and ratio < policy.reduce_ratio) or (z is not None and z > policy.crowd_reduce) or d > policy.dd_reduce*policy.te
     life = state.lifecycle
-    if life != Lifecycle.PAUSE:
+    if life not in (Lifecycle.PAUSE,Lifecycle.CANDIDATE,Lifecycle.VALIDATED,Lifecycle.PAPER):
         life = Lifecycle.PAUSE if pause else Lifecycle.REDUCE if reduce else life
     rec = state.recovery
     if life == state.lifecycle == Lifecycle.REDUCE:
@@ -203,3 +207,24 @@ def evaluate(state: MonitorState, inputs: Mapping[str, Observed], calendar: Sche
     new = replace(state, lifecycle=life, calendar=t, observations=xs, cusum=s, weight=weight, ramp_cap=ramp,
                   consecutive_failures=0, recovery=rec, shadow=shadow, paused=paused)
     return Evaluation(new, perm, weight if perm == Permission.OK else None, posterior, tuple(proposals))
+
+
+def evaluate(state, inputs, calendar, policy=Policy(), *, event_store=None, **kwargs):
+    """Pure research evaluation, or journalled production evaluation via EventStore.
+
+    EventStore.evaluate is the persistent lifecycle entrypoint. Synthetic null
+    simulations deliberately use the pure path and cannot approve transitions.
+    """
+    result = _evaluate(state, inputs, calendar, policy, **kwargs)
+    if event_store is not None:
+        evidence = dict(inputs=dict(inputs), calendar=calendar, policy=policy,
+                        approval_id=kwargs.get('approval_id'), proposals=result.proposals,
+                        permission=result.permission, target=result.target)
+        authorization = kwargs.get('authorization')
+        if authorization is not None:
+            from dataclasses import asdict
+            evidence['human_record'] = asdict(authorization.record)
+        from .approval import monitor_evidence
+        proof=monitor_evidence(inputs,calendar,policy,kwargs.get('approve_reentry',False),kwargs.get('approve_retirement',False),kwargs.get('ramp_plan'))
+        event_store.append(state, result, evidence, authorization=authorization, approval_evidence=proof)
+    return result

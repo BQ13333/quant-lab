@@ -33,11 +33,11 @@ def require_human_approval(approval_id, authorization, state, evidence):
 
 def monitor_evidence(inputs, calendar, policy, reentry, retirement, ramp_plan):
     return dict(action='monitor',inputs=dict(inputs),calendar_hash=calendar.sha256(),policy=policy,
-                reentry=reentry,retirement=retirement,first_ramp=ramp_plan.first_feasible if ramp_plan else policy.first_ramp)
+                reentry=reentry,retirement=retirement,stage_reports=ramp_plan.stage_reports if ramp_plan else (),first_ramp=ramp_plan.first_feasible if ramp_plan else policy.first_ramp)
 
 
 def ramp_evidence(plan, evidence):
     return dict(action='advance_ramp',stages=plan.stages,first_feasible=plan.first_feasible,
-                required_rebalances=plan.required_rebalances,weeks=evidence.weeks,
+                stage_reports=plan.stage_reports,required_rebalances=plan.required_rebalances,weeks=evidence.weeks,
                 rebalances=evidence.rebalances,fills=evidence.fills,fill_days=evidence.fill_days,
                 cost_test_passed=evidence.cost_test_passed)

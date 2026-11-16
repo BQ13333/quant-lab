@@ -47,6 +47,7 @@ class ResearchDataset:
     content_hash: str
     pit_verified: bool = False
     historical_label: str = "research_or_contaminated_audit_only"
+    markets: tuple[str, ...] = ("MY",)
 
 
 @dataclass(frozen=True)
@@ -89,6 +90,8 @@ class ResearchDataFirewall:
         purge: int = 5,
         embargo: int = 5,
     ) -> ResearchDataset:
+        if features.attrs.get('exploration_only'):
+            raise ValueError('exploration data cannot enter admission')
         end = pd.Timestamp(research_end) if research_end is not None else self.contaminated_through
         if purge < 0 or embargo < 0 or purge + embargo >= self.min_observations:
             raise ValueError(ResearchFailureCode.INVALID_PURGE_EMBARGO.value)
@@ -165,19 +168,21 @@ def evaluate_research_gate(
 ) -> ResearchGateResult:
     if not np.isfinite([max_pbo,min_deflated_sharpe]).all() or not 0 <= max_pbo <= 1 or not 0 <= min_deflated_sharpe <= 1:
         raise ValueError("invalid research gate thresholds")
+    from quant_lab.models.signal_factory import require_admission_markets
+    require_admission_markets(dataset.markets)
     failures: list[ResearchFailureCode] = []
     if candidate_id not in dataset.candidate_returns:
         raise KeyError(f"candidate not present in research returns: {candidate_id}")
     try:
         current = ledger.snapshot()
-        lifetime_attempts = current.global_count
-        if snapshot is None or (snapshot.global_count, snapshot.family_counts, snapshot.dispersion_receipt, snapshot.ledger_hash) != (current.global_count, current.family_counts, current.dispersion_receipt, current.ledger_hash) or tuple(observed_trial_sharpes) != snapshot.sharpes:
+        lifetime_attempts = current.charged_count
+        if type(snapshot) is not type(current) or snapshot.charged_count != current.charged_count or (snapshot.global_count, snapshot.family_counts, snapshot.dispersion_receipt, snapshot.ledger_hash) != (current.global_count, current.family_counts, current.dispersion_receipt, current.ledger_hash) or tuple(observed_trial_sharpes) != snapshot.sharpes:
             failures.append(ResearchFailureCode.LEDGER_UNAVAILABLE)
     except Exception:
         failures.append(ResearchFailureCode.LEDGER_UNAVAILABLE)
         lifetime_attempts = 0
     returns = dataset.candidate_returns[candidate_id]
-    if dataset.pit_verified is not True:
+    if dataset.pit_verified is not True or dataset.features.attrs.get('exploration_only'):
         failures.append(ResearchFailureCode.POINT_IN_TIME_VIOLATION)
     if benchmark_name == 'CASH' and benchmark_returns is None:
         benchmark = 0.

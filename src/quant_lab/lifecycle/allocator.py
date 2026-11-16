@@ -42,8 +42,7 @@ def constrained_weights(scores: Sequence[float], previous: Sequence[float], slee
                         max_turnover: float) -> np.ndarray:
     """Maximise linear score; L1 turnover includes sleeve trades, excludes cash.
 
-    Incompatible safety bounds and turnover raise rather than silently violate
-    either constraint. Caller must explicitly authorise a liquidation override.
+    Mandatory safety cuts precede the discretionary turnover budget.
     """
     finite(scores, previous, max_turnover)
     n = len(sleeves)
@@ -53,6 +52,7 @@ def constrained_weights(scores: Sequence[float], previous: Sequence[float], slee
     if np.any(prev < 0) or prev.sum() > 1+1e-9:
         raise ValueError('invalid prior allocation')
     bounds = [s.bounds() for s in sleeves]
+    prev = np.minimum(prev, [b[1] for b in bounds])
     # w-p <= u; p-w <= u; sum(w)<=1; sum(u)<=turnover.
     eye = np.eye(n)
     a = np.vstack([np.c_[eye, -eye], np.c_[-eye, -eye], np.r_[np.ones(n), np.zeros(n)], np.r_[np.zeros(n), np.ones(n)]])
@@ -96,7 +96,7 @@ class DiscountedThompson:
         precision = 1/self.prior_sd**2+self.count/self.sigma**2
         mean = (self.prior_mean/self.prior_sd**2+self.total/self.sigma**2)/precision
         scores = self.rng.normal(mean, 1/np.sqrt(precision))
-        return constrained_weights(scores, previous, sleeves, max_turnover)
+        return ShadowWeights(tuple(constrained_weights(scores, previous, sleeves, max_turnover)), 'UNREGISTERED_SYNTHETIC')
 
 
 def inverse_variance(variances: Sequence[float], sleeves: Sequence[Sleeve]) -> np.ndarray:
@@ -116,3 +116,44 @@ def inverse_variance(variances: Sequence[float], sleeves: Sequence[Sleeve]) -> n
         else:
             low = mid
     return np.clip(low/v, bounds[:, 0], bounds[:, 1])
+
+
+def default_allocate(variances, previous, sleeves, discretionary_turnover):
+    """Mandatory cap cuts first; L1 budget applies only to discretionary moves."""
+    finite(previous, discretionary_turnover)
+    prev = np.asarray(previous, dtype=float)
+    if prev.shape != (len(sleeves),) or np.any(prev < 0) or prev.sum() > 1 + 1e-9 or discretionary_turnover < 0:
+        raise ValueError('invalid prior allocation/budget')
+    caps = np.array([s.bounds()[1] for s in sleeves])
+    safe = np.minimum(prev, caps)
+    target = inverse_variance(variances, sleeves)
+    distance = np.abs(target - safe).sum()
+    return safe + (target - safe) * (min(1., discretionary_turnover / distance) if distance else 0.)
+
+@dataclass(frozen=True)
+class ShadowWeights:
+    weights: tuple[float, ...]
+    trial_id: str
+    label: str = 'EXPERIMENTAL_SHADOW_ONLY'
+
+class ExperimentalArm:
+    def __init__(self, sampler, ledger):
+        self.sampler, self.ledger = sampler, ledger
+        self.log = []
+
+    def allocate(self, previous, sleeves, *, reservation, max_turnover=.25):
+        trial = self.ledger.reserve_trial(**reservation)
+        weights = self.sampler.allocate(previous, sleeves, max_turnover)
+        result = ShadowWeights(tuple(float(x) for x in weights.weights), trial.trial_id)
+        self.ledger.record_outcome(trial.trial_id, status='success', payload={'kind': result.label, 'weights': list(result.weights)})
+        self.log.append(result)
+        return result
+
+
+def book_weights(weights):
+    if isinstance(weights, ShadowWeights):
+        raise ValueError('shadow weights cannot set book weights')
+    result = np.asarray(weights, dtype=float)
+    if result.ndim != 1 or not np.isfinite(result).all() or (result < 0).any() or result.sum() > 1 + 1e-9:
+        raise ValueError('invalid book weights')
+    return result
