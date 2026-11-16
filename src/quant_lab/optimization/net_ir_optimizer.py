@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable
 
@@ -45,6 +45,7 @@ class ConstraintResult:
     value: float
     limit: float
     violation: float  # 0 if passed, positive if failed
+    reason: str = ""
 
 
 @dataclass(frozen=True)
@@ -109,8 +110,10 @@ class OptimizedCandidateResult:
             "passed_all": self.passed_all,
             "constraint_violation": self.constraint_violation,
             "score": self.score,
+            "failure_reasons": "; ".join(c.reason or c.name for c in self.constraints if not c.passed),
             **{f"constraint_{c.name}": c.value for c in self.constraints},
             **{f"constraint_{c.name}_passed": c.passed for c in self.constraints},
+            **{f"constraint_{c.name}_reason": c.reason for c in self.constraints},
         }
         for key, value in self.metadata.items():
             if isinstance(value, (str, int, float, bool)) or value is None:
@@ -230,11 +233,9 @@ class NetIRConstrainedOptimizer:
         weights: pd.DataFrame,
         group_map: pd.Series | None,
         cost_bps: float,
-        trial_sharpes: list[float],
+        trial_sharpes: list[float] | None,
     ) -> tuple[ConstraintResult, ...]:
         constraints: list[ConstraintResult] = []
-        pp = self.periods_per_year
-
         # 1. Max drawdown
         dd = max_drawdown(net_returns)
         constraints.append(
@@ -310,19 +311,32 @@ class NetIRConstrainedOptimizer:
             )
         )
 
-        # 6. Deflated Sharpe
-        dsr = deflated_sharpe_ratio(net_returns, trial_sharpes=trial_sharpes, periods_per_year=pp)
-        constraints.append(
-            ConstraintResult(
-                name="deflated_sharpe",
-                passed=dsr >= self.min_deflated_sharpe,
-                value=dsr,
-                limit=self.min_deflated_sharpe,
-                violation=max(0.0, self.min_deflated_sharpe - dsr),
-            )
-        )
-
+        # Evidence errors are candidate rejections, never successful zero scores.
+        constraints.append(self.deflated_sharpe_constraint(net_returns, trial_sharpes))
         return tuple(constraints)
+
+    def deflated_sharpe_constraint(
+        self, returns: pd.Series, trial_sharpes: list[float] | None,
+    ) -> ConstraintResult:
+        """Defer first-pass DSR; reject invalid evidence in the final trial set."""
+        reason = "deflated Sharpe pending full trial set"
+        if trial_sharpes is not None:
+            try:
+                dsr = deflated_sharpe_ratio(
+                    returns, trial_sharpes, periods_per_year=self.periods_per_year,
+                )
+            except ValueError as exc:
+                reason = f"invalid deflated Sharpe evidence: {exc}"
+            else:
+                return ConstraintResult(
+                    "deflated_sharpe", dsr >= self.min_deflated_sharpe,
+                    dsr, self.min_deflated_sharpe,
+                    max(0.0, self.min_deflated_sharpe - dsr),
+                )
+        return ConstraintResult(
+            "deflated_sharpe", False, float("nan"), self.min_deflated_sharpe,
+            float("inf"), reason,
+        )
 
     def _country_max_weight(self, weights: pd.DataFrame, group_map: pd.Series) -> pd.Series:
         aligned = group_map.reindex(weights.columns)
@@ -370,7 +384,7 @@ class NetIRConstrainedOptimizer:
         gross_returns: pd.Series,
         group_map: pd.Series | None,
         benchmark_returns: pd.Series | None,
-        trial_sharpes: list[float],
+        trial_sharpes: list[float] | None,
         splits_count: int,
     ) -> OptimizedCandidateResult:
         pp = self.periods_per_year
@@ -401,7 +415,6 @@ class NetIRConstrainedOptimizer:
             annual_excess = 0.0
             ir = 0.0
 
-        dsr = deflated_sharpe_ratio(net_returns, trial_sharpes=trial_sharpes, periods_per_year=pp)
         constraints = self._evaluate_constraints(
             net_returns, gross_returns, weights_all, group_map, cost_bps, trial_sharpes
         )
@@ -413,7 +426,7 @@ class NetIRConstrainedOptimizer:
             net_ir=ir,
             net_sharpe=net_sharpe,
             gross_sharpe=gross_sharpe,
-            deflated_sharpe=dsr,
+            deflated_sharpe=next(c.value for c in constraints if c.name == "deflated_sharpe"),
             annual_return=annual_return,
             annual_volatility=annual_vol,
             max_drawdown=dd,
@@ -446,7 +459,7 @@ class NetIRConstrainedOptimizer:
         prices: pd.DataFrame,
         group_map: pd.Series | None,
         benchmark_returns: pd.Series | None,
-        trial_sharpes: list[float],
+        trial_sharpes: list[float] | None,
         max_weight: float | None = None,
     ) -> OptimizedCandidateResult:
         """Evaluate a single model + allocator configuration."""
@@ -558,61 +571,58 @@ class NetIRConstrainedOptimizer:
             rebalance_frequency = config["rebalance_frequency"]
             max_weight = config.get("max_weight")
 
-            try:
-                weights_parts: list[pd.DataFrame] = []
-                gross_returns_parts: list[pd.Series] = []
-                for scores in split_scores:
-                    weights = self._weights_from_scores(
-                        scores,
-                        weighting,
-                        group_map,
-                        top_fraction,
-                        max_weight=max_weight,
-                    )
-                    weights = self._apply_rebalance(weights, rebalance_frequency)
-                    weights = volatility_target(
-                        weights=weights,
-                        asset_returns=asset_returns.reindex(weights.index),
-                        target_volatility=self.target_volatility,
-                        periods_per_year=self.periods_per_year,
-                        max_leverage=self.max_leverage,
-                    )
-                    if max_weight is not None and "capped" in weighting:
-                        weights = weights.clip(lower=0.0, upper=max_weight)
-                    gross = (weights.shift(1).fillna(0.0) * asset_returns.reindex(weights.index)).sum(axis=1)
-                    weights_parts.append(weights)
-                    gross_returns_parts.append(gross)
+            weights_parts: list[pd.DataFrame] = []
+            gross_returns_parts: list[pd.Series] = []
+            for scores in split_scores:
+                weights = self._weights_from_scores(
+                    scores,
+                    weighting,
+                    group_map,
+                    top_fraction,
+                    max_weight=max_weight,
+                )
+                weights = self._apply_rebalance(weights, rebalance_frequency)
+                weights = volatility_target(
+                    weights=weights,
+                    asset_returns=asset_returns.reindex(weights.index),
+                    target_volatility=self.target_volatility,
+                    periods_per_year=self.periods_per_year,
+                    max_leverage=self.max_leverage,
+                )
+                if max_weight is not None and "capped" in weighting:
+                    weights = weights.clip(lower=0.0, upper=max_weight)
+                gross = (weights.shift(1).fillna(0.0) * asset_returns.reindex(weights.index)).sum(axis=1)
+                weights_parts.append(weights)
+                gross_returns_parts.append(gross)
 
-                weights_all = pd.concat(weights_parts).sort_index()
-                gross_returns = pd.concat(gross_returns_parts).sort_index()
-                for cost_bps in cost_bps_grid:
-                    cost_parts = [
-                        self._compute_costs(weights, cost_bps, group_map)
-                        for weights in weights_parts
-                    ]
-                    cost_returns = pd.concat(cost_parts).sort_index()
-                    net_returns = gross_returns - cost_returns
-                    results.append(
-                        self._build_candidate_result(
-                            model_name=model.name,
-                            model_metadata=model_metadata,
-                            weighting=weighting,
-                            top_fraction=top_fraction,
-                            rebalance_frequency=rebalance_frequency,
-                            max_weight=max_weight,
-                            cost_bps=cost_bps,
-                            net_returns=net_returns,
-                            weights_all=weights_all,
-                            cost_returns=cost_returns,
-                            gross_returns=gross_returns,
-                            group_map=group_map,
-                            benchmark_returns=benchmark_returns,
-                            trial_sharpes=[],
-                            splits_count=len(splits),
-                        )
+            weights_all = pd.concat(weights_parts).sort_index()
+            gross_returns = pd.concat(gross_returns_parts).sort_index()
+            for cost_bps in cost_bps_grid:
+                cost_parts = [
+                    self._compute_costs(weights, cost_bps, group_map)
+                    for weights in weights_parts
+                ]
+                cost_returns = pd.concat(cost_parts).sort_index()
+                net_returns = gross_returns - cost_returns
+                results.append(
+                    self._build_candidate_result(
+                        model_name=model.name,
+                        model_metadata=model_metadata,
+                        weighting=weighting,
+                        top_fraction=top_fraction,
+                        rebalance_frequency=rebalance_frequency,
+                        max_weight=max_weight,
+                        cost_bps=cost_bps,
+                        net_returns=net_returns,
+                        weights_all=weights_all,
+                        cost_returns=cost_returns,
+                        gross_returns=gross_returns,
+                        group_map=group_map,
+                        benchmark_returns=benchmark_returns,
+                        trial_sharpes=None,
+                        splits_count=len(splits),
                     )
-            except Exception:
-                continue
+                )
 
         return results
 
@@ -638,17 +648,14 @@ class NetIRConstrainedOptimizer:
 
         # First pass: collect all trial sharpes (needed for deflated Sharpe)
         for model in models:
-            try:
-                model_results = self._evaluate_model_grid_cached(
-                    model=model,
-                    allocator_configs=allocator_configs,
-                    cost_bps_grid=cost_bps_grid,
-                    prices=prices,
-                    group_map=group_map,
-                    benchmark_returns=benchmark_returns,
-                )
-            except Exception:
-                continue
+            model_results = self._evaluate_model_grid_cached(
+                model=model,
+                allocator_configs=allocator_configs,
+                cost_bps_grid=cost_bps_grid,
+                prices=prices,
+                group_map=group_map,
+                benchmark_returns=benchmark_returns,
+            )
             trial_sharpes.extend(candidate.net_sharpe for candidate in model_results)
             results.extend(model_results)
 
@@ -664,32 +671,11 @@ class NetIRConstrainedOptimizer:
                 result.cost_bps,
                 trial_sharpes,
             )
-            final_results.append(
-                OptimizedCandidateResult(
-                    model_name=result.model_name,
-                    allocator_name=result.allocator_name,
-                    cost_bps=result.cost_bps,
-                    net_ir=result.net_ir,
-                    net_sharpe=result.net_sharpe,
-                    gross_sharpe=result.gross_sharpe,
-                    deflated_sharpe=deflated_sharpe_ratio(
-                        result.net_returns, trial_sharpes=trial_sharpes, periods_per_year=self.periods_per_year
-                    ),
-                    annual_return=result.annual_return,
-                    annual_volatility=result.annual_volatility,
-                    max_drawdown=result.max_drawdown,
-                    turnover=result.turnover,
-                    annual_excess_return=result.annual_excess_return,
-                    tracking_error=result.tracking_error,
-                    information_ratio=result.information_ratio,
-                    constraints=constraints,
-                    net_returns=result.net_returns,
-                    weights=result.weights,
-                    cost_returns=result.cost_returns,
-                    gross_returns=result.gross_returns,
-                    metadata=result.metadata,
-                )
-            )
+            final_results.append(replace(
+                result,
+                constraints=constraints,
+                deflated_sharpe=next(c.value for c in constraints if c.name == "deflated_sharpe"),
+            ))
 
         # Rank by composite score (net IR minus constraint violations)
         final_results.sort(key=lambda r: r.score, reverse=True)

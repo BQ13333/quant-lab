@@ -3,12 +3,13 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import pandas as pd
 
-from quant_lab.research.trial_ledger import TrialLedger
+if TYPE_CHECKING:
+    from quant_lab.research.trial_ledger import TrialLedger
 from quant_lab.validation.metrics import deflated_sharpe_ratio, sharpe_ratio
 from quant_lab.validation.overfit import probability_of_backtest_overfitting
 

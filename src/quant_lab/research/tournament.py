@@ -127,14 +127,22 @@ class ModelTournament:
         rows = []
         for result, model_returns in zip(results, self._rerun_returns(prices, train_size, test_size, embargo)):
             active = self._active_metrics(model_returns, benchmark_returns)
+            reason = ""
+            try:
+                dsr = deflated_sharpe_ratio(
+                    model_returns, trial_sharpes=trial_sharpes,
+                    periods_per_year=self.periods_per_year,
+                )
+            except ValueError as exc:
+                dsr = float("nan")
+                reason = f"invalid deflated Sharpe evidence: {exc}"
             rows.append(
                 {
                     **result.__dict__,
-                    "deflated_sharpe": deflated_sharpe_ratio(
-                        model_returns,
-                        trial_sharpes=trial_sharpes,
-                        periods_per_year=self.periods_per_year,
-                    ),
+                    "deflated_sharpe": dsr,
+                    "evidence_valid": not reason,
+                    "status": "rejected" if reason else "evaluated",
+                    "failure_reasons": reason,
                     **active,
                 }
             )

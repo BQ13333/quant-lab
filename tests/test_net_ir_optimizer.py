@@ -23,7 +23,9 @@ def _synthetic_prices(n_days: int = 500, n_assets: int = 5) -> pd.DataFrame:
 
 def _group_map(n_assets: int = 5) -> pd.Series:
     return pd.Series(
-        ["SG", "ID", "MY", "TH", "VN"][:n_assets],
+        # Only these countries have evidenced cost schedules; unknown labels
+        # used to receive a silent fallback cost under the fail-open contract.
+        ["Singapore", "Indonesia", "Malaysia", "Singapore", "Indonesia"][:n_assets],
         index=[f"A{i}" for i in range(n_assets)],
     )
 
@@ -171,6 +173,8 @@ def test_optimizer_can_return_detailed_candidate_results():
     frame = opt.results_to_frame(results)
 
     assert len(results) == 1
+    assert np.isfinite(results[0].deflated_sharpe)
+    assert "pending" not in frame.loc[0, "failure_reasons"]
     assert not results[0].net_returns.empty
     assert frame.loc[0, "candidate_id"] == results[0].candidate_id
 
@@ -276,3 +280,40 @@ def test_precomputed_rule_signals_match_walk_forward_rule_signals():
     assert precomputed.loc[0, "net_ir"] == pytest.approx(walk_forward.loc[0, "net_ir"])
     assert precomputed.loc[0, "net_sharpe"] == pytest.approx(walk_forward.loc[0, "net_sharpe"])
     assert precomputed.loc[0, "max_drawdown"] == pytest.approx(walk_forward.loc[0, "max_drawdown"])
+
+
+@pytest.mark.parametrize("trial_sharpes", [[], [1., 1.], [float("nan")]])
+def test_invalid_dsr_evidence_cannot_pass_even_at_zero_threshold(trial_sharpes):
+    opt = NetIRConstrainedOptimizer(min_deflated_sharpe=0.0)
+    constraint = opt.deflated_sharpe_constraint(pd.Series([.01, -.02, .03, .01, -.01]), trial_sharpes)
+    assert not constraint.passed
+    assert np.isnan(constraint.value)
+    assert constraint.violation == float("inf")
+    assert "invalid deflated Sharpe evidence" in constraint.reason
+
+
+def test_duplicate_trials_are_retained_as_rejected_candidates():
+    opt = NetIRConstrainedOptimizer(train_size=80, test_size=20, min_deflated_sharpe=0.0)
+    frame = opt.optimize(
+        models=[MomentumModel(name="mom", lookback=21)],
+        allocator_configs=[{"weighting": "long_only", "top_fraction": .5, "rebalance_frequency": "D"}],
+        cost_bps_grid=(5., 5.), prices=_synthetic_prices(220),
+        group_map=None, benchmark_returns=None,
+    )
+    assert len(frame) == 2
+    assert not frame.passed_all.any()
+    assert frame.deflated_sharpe.isna().all()
+    assert frame.failure_reasons.str.contains("positive finite dispersion").all()
+    assert (frame.score == -np.inf).all()
+
+
+def test_unsupported_cost_schedule_is_not_silently_dropped():
+    opt = NetIRConstrainedOptimizer(train_size=80, test_size=20)
+    with pytest.raises(ValueError, match="unsupported country"):
+        opt.optimize(
+            models=[MomentumModel(name="mom", lookback=21)],
+            allocator_configs=[{"weighting": "long_only", "top_fraction": .5, "rebalance_frequency": "D"}],
+            cost_bps_grid=(15.,), prices=_synthetic_prices(220),
+            group_map=pd.Series("Unknown", index=_synthetic_prices().columns),
+            benchmark_returns=None,
+        )

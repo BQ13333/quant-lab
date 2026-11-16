@@ -44,3 +44,12 @@ def test_run_malaysia_research_from_asean_artifact_smoke(tmp_path):
     assert result.eligible_prices.shape == (220, 6)
     assert result.artifact_dir.joinpath("leaderboard.csv").exists()
     assert result.note_paths
+
+    leaderboard = pd.read_csv(result.artifact_dir / "leaderboard.csv")
+    rejected = leaderboard.loc[leaderboard["status"] == "rejected"]
+    assert not rejected.empty
+    assert rejected["deflated_sharpe"].isna().all()
+    assert rejected["failure_reasons"].str.contains("positive finite variance").all()
+    evaluated = leaderboard.loc[leaderboard["status"] == "evaluated"]
+    assert not evaluated.empty
+    assert np.isfinite(evaluated["deflated_sharpe"]).all()
