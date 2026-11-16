@@ -136,3 +136,11 @@ def test_assert_no_future_feature_leakage_raises():
 
     with pytest.raises(ValueError, match="point-in-time leakage"):
         assert_no_future_feature_leakage(features)
+
+
+def test_mixed_timestamp_units_same_result():
+    decisions=pd.DataFrame({'sid':['a'],'decision_time_utc':pd.to_datetime(['2024-01-02']).as_unit('us')})
+    events=pd.DataFrame({'sid':['a'],'available_time_utc':pd.to_datetime(['2024-01-01']).as_unit('ns'),'value':[3]})
+    mixed=point_in_time_asof_join(decisions,events)
+    decisions['decision_time_utc']=decisions.decision_time_utc.astype('datetime64[ns]')
+    pd.testing.assert_frame_equal(mixed,point_in_time_asof_join(decisions,events))

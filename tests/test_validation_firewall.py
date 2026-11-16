@@ -209,3 +209,20 @@ def test_cash_benchmark_must_be_explicit(tmp_path):
     cash=evaluate_research_gate(data,candidate_id='stable',ledger=ledger,observed_trial_sharpes=[],benchmark_name='CASH')
     assert ResearchFailureCode.NON_POSITIVE_NET_IR in omitted.failure_codes
     assert cash.net_oos_ir > 0
+
+
+def test_cluster_count_cannot_replace_raw_count(tmp_path):
+    ledger=TrialLedger(tmp_path/'l.db',tmp_path/'e')
+    for i in range(3):
+        r=ledger.reserve_trial(idempotency_key=str(i),campaign='lab',family='same_cluster',hypothesis_id='h',candidate_id=str(i),**{k:'a'*64 for k in ('code_hash','data_hash','config_hash','prompt_hash','model_hash')})
+        ledger.record_outcome(r.trial_id,status='success',payload={'sharpe':.1,'cluster':1})
+    snap=ledger.snapshot()
+    reduced=dataclasses.replace(snap,global_count=1)
+    result=evaluate_research_gate(sealed(),candidate_id='stable',ledger=ledger,observed_trial_sharpes=snap.sharpes,snapshot=reduced,benchmark_name='CASH')
+    assert result.lifetime_attempts==3 and ResearchFailureCode.LEDGER_UNAVAILABLE in result.failure_codes
+
+def test_exploration_runs_are_charged(tmp_path):
+    ledger=TrialLedger(tmp_path/'l.db',tmp_path/'e')
+    r=ledger.reserve_trial(idempotency_key='explore',campaign='exploration',family='f',hypothesis_id='h',candidate_id='c',**{k:'a'*64 for k in ('code_hash','data_hash','config_hash','prompt_hash','model_hash')})
+    ledger.record_outcome(r.trial_id,status='success',payload={'exploration_only':True,'sharpe':.1})
+    assert ledger.snapshot().charged_count==1

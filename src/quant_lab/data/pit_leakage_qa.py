@@ -98,8 +98,8 @@ def load_l2_backtest_decision_calendar(
         .astype(float)
     )
     prices = prices.ffill(limit=ffill_limit)
-    eligible = prices.notna().sum().ge(min_rows) & prices.isna().mean().le(max_missing_ratio)
-    prices = prices.loc[:, eligible].dropna(how="all")
+    eligibility = decision_eligibility(prices, min_rows, max_missing_ratio)
+    prices = prices.where(eligibility).dropna(how="all")
     if prices.empty:
         raise ValueError("no eligible price columns after coverage filters")
 
@@ -120,6 +120,7 @@ def load_l2_backtest_decision_calendar(
         [sorted(prices.columns.astype(str)), prices.index],
         names=["requested_ric", "decision_date"],
     ).to_frame(index=False)
+    grid = grid[grid.apply(lambda row: bool(eligibility.at[row['decision_date'], row['requested_ric']]),axis=1)]
     decision_meta = metadata.rename(
         columns={
             "ticker": "requested_ric",
@@ -511,3 +512,13 @@ def _markdown_table(frame: pd.DataFrame, max_rows: int = 20) -> str:
         for _, row in clipped.iterrows()
     ]
     return "\n".join([header, separator, *rows])
+
+
+def decision_eligibility(prices, min_rows, max_missing_ratio):
+    """Expanding coverage as known per session, never full-history coverage."""
+    if type(min_rows) is not int or min_rows < 1 or not 0 <= max_missing_ratio <= 1 or not prices.index.is_monotonic_increasing:
+        raise ValueError('invalid eligibility inputs')
+    known=prices.notna()
+    count=known.cumsum()
+    elapsed=pd.Series(range(1,len(prices)+1),index=prices.index)
+    return count.ge(min_rows) & (1-count.div(elapsed,axis=0)).le(max_missing_ratio) & known

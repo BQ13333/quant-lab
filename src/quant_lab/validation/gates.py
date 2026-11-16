@@ -92,6 +92,13 @@ class ValidationGate:
         """
         reasons: list[str] = []
         row = leaderboard_row
+        if row.get('cost_label') == 'LAB_SIMULATED_COST':
+            reasons.append('LAB_SIMULATED_COST cannot approve trading')
+        from quant_lab.models.signal_factory import require_admission_markets
+        try:
+            require_admission_markets(row.get('markets', ('MY',)))
+        except ValueError:
+            reasons.append('out-of-scope admission market')
 
         # Net Sharpe thresholds — non-finite evidence fails closed
         net_sharpe = _finite(row.get("sharpe", 0.0), "sharpe", reasons)

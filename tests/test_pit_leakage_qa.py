@@ -146,5 +146,5 @@ def test_load_l2_backtest_decision_calendar_rebuilds_u2_matrix(tmp_path):
     decisions = load_l2_backtest_decision_calendar(l2_dir, universe_tier="u2")
 
     assert set(decisions["requested_ric"]) == {"AAA.KL", "BBB.KL"}
-    assert len(decisions) == 10
-    assert decisions["decision_date"].min() == pd.Timestamp("2024-01-01")
+    assert len(decisions) == 6
+    assert decisions["decision_date"].min() == pd.Timestamp("2024-01-03")

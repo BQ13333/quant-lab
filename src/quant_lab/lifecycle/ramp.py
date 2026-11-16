@@ -12,6 +12,7 @@ class RampPlan:
     stages: tuple[float, ...] = (.1, .25, .5, 1.)
     first_feasible: float = .1
     required_rebalances: int = 2
+    stage_reports: tuple = ()
 
     def __post_init__(self):
         if not self.stages or any(not math.isfinite(x) or not 0 < x <= 1 for x in self.stages) or tuple(sorted(set(self.stages))) != self.stages or self.first_feasible not in self.stages or type(self.required_rebalances) is not int or self.required_rebalances < 1:
@@ -27,6 +28,16 @@ class StageEvidence:
     cost_test_passed: bool
     approval_id: str
     authorization: Authorization | None = None
+
+
+def require_feasible_plan(plan, stage):
+    from .feasibility import StageReport
+    reports = plan.stage_reports
+    if not reports or any(type(r) is not StageReport for r in reports) or tuple(r.stage for r in reports) != plan.stages:
+        raise ValueError('complete stage feasibility reports required')
+    passing = [r.stage for r in reports if r.passed]
+    if not passing or plan.first_feasible != min(passing) or stage not in passing:
+        raise ValueError('ramp plan first stage must match feasible construction')
 
 
 def advance_ramp(state, plan, evidence):
@@ -45,4 +56,18 @@ def advance_ramp(state, plan, evidence):
     index = plan.stages.index(state.ramp_cap)
     if index + 1 == len(plan.stages):
         raise ValueError('already at last stage')
+    require_feasible_plan(plan, state.ramp_cap)
+    require_feasible_plan(plan, plan.stages[index+1])
     return replace(state, ramp_cap=plan.stages[index+1], ramp_approvals=state.ramp_approvals+(evidence.approval_id,))
+
+
+def start_ramp(state, plan, calibration, approval_id, authorization):
+    """PAPER exit requires calibrated policy, feasible construction and a person."""
+    from .fwer import Calibration
+    if state.lifecycle != Lifecycle.PAPER or type(calibration) is not Calibration or not calibration.passed:
+        raise ValueError('no sleeve leaves PAPER while NOT_CALIBRATED')
+    require_feasible_plan(plan, plan.first_feasible)
+    evidence=dict(action='start_ramp',plan=plan,calibration=calibration)
+    require_human_approval(approval_id,authorization,state,evidence)
+    return replace(state,lifecycle=Lifecycle.RAMP,ramp_cap=plan.first_feasible,
+                   weight=plan.first_feasible,ramp_approvals=state.ramp_approvals+(approval_id,))

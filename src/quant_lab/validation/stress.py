@@ -101,25 +101,17 @@ def country_crisis_slices(
 ) -> dict[str, pd.Series]:
     """Return per-crisis performance when a given country is excluded."""
 
-    series = pd.Series(returns, dtype=float).replace([np.inf, -np.inf], np.nan).dropna()
-    results: dict[str, pd.Series] = {}
-
+    if not isinstance(returns, pd.DataFrame):
+        raise ValueError('country exclusion requires per-asset returns, not aggregate P&L')
+    if not weights.index.equals(returns.index) or not weights.columns.equals(returns.columns) or group_map.reindex(weights.columns).isna().any() or not np.isfinite(returns.to_numpy()).all() or not np.isfinite(weights.to_numpy()).all():
+        raise ValueError('aligned finite asset returns, beginning-period weights and groups required')
+    results = {}
     for country in crisis_countries:
-        mask = ~group_map.isin([country])
-        if hasattr(weights, "columns"):
-            cols = [c for c in weights.columns if c in mask.index and mask.get(c, True)]
-            sub_weights = weights[cols] if cols else weights
-        else:
-            sub_weights = weights
-        sub_returns = series.loc[sub_weights.index] if not sub_weights.empty else series
-        results[country] = pd.Series(
-            {
-                "mean_return": float(sub_returns.mean() * 252),
-                "sharpe": sharpe_ratio(sub_returns),
-                "max_drawdown": max_drawdown(sub_returns),
-            }
-        )
-
+        cols = group_map.reindex(weights.columns).ne(country)
+        sub_returns = (returns.loc[:,cols] * weights.loc[:,cols]).sum(axis=1)
+        results[country] = pd.Series({'mean_return': float(sub_returns.mean()*252),
+                                     'sharpe': sharpe_ratio(sub_returns),
+                                     'max_drawdown': max_drawdown(sub_returns)})
     return results
 
 
@@ -142,12 +134,11 @@ def monthly_stability(returns: pd.Series | Sequence[float]) -> pd.DataFrame:
         [f"{y}-{m:02d}-01" for y, m in monthly.index]
     )
 
-    positive = (monthly > 0).astype(int)
-    # streaks of positive months
-    streaks = positive.groupby((positive != positive.shift()).cumsum()).sum()
-    pos_streaks = streaks[streaks > 0]
-    neg_streaks = streaks[streaks == 0]
-    neg_streaks = neg_streaks.abs()
+    def lengths(mask):
+        groups=(mask != mask.shift()).cumsum()
+        return mask.groupby(groups).sum()
+    pos_streaks=lengths(monthly > 0)
+    neg_streaks=lengths(monthly < 0)
 
     return pd.DataFrame(
         {
@@ -198,6 +189,8 @@ def bootstrap_confidence_interval(
 ) -> tuple[float, float, float]:
     """Bootstrap confidence interval for a chosen statistic."""
 
+    if statistic not in {'sharpe','mean','drawdown'} or type(n_bootstrap) is not int or n_bootstrap < 1 or not 0 < confidence < 1:
+        raise ValueError('invalid bootstrap inputs')
     series = pd.Series(returns, dtype=float).replace([np.inf, -np.inf], np.nan).dropna()
     if len(series) < 2:
         return (0.0, 0.0, 0.0)
@@ -217,7 +210,7 @@ def bootstrap_confidence_interval(
         else:
             bootstraps.append(sharpe_ratio(sample_series))
 
-    point = bootstraps[0] if statistic == "sharpe" else sharpe_ratio(series)
+    point = {'sharpe': lambda: sharpe_ratio(series), 'mean': lambda: float(series.mean()*252), 'drawdown': lambda: max_drawdown(series)}[statistic]()
     lower = float(np.percentile(bootstraps, ((1 - confidence) / 2) * 100))
     upper = float(np.percentile(bootstraps, (1 - (1 - confidence) / 2) * 100))
     return (lower, upper, point)

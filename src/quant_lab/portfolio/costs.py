@@ -139,7 +139,9 @@ def total_cost(
         per_asset_turnover = _trades(weights, starting_holdings)
         country_cost = per_asset_turnover.copy()
         for asset in country_cost.columns:
-            country_cost[asset] *= country_schedule.get(asset, cost_bps)
+            if asset not in country_schedule or not np.isfinite(country_schedule[asset]) or country_schedule[asset] < 0:
+                raise ValueError(f'missing or invalid asset schedule: {asset}')
+            country_cost[asset] *= country_schedule[asset]
         components["linear"] = country_cost.sum(axis=1)
         components["country"] = components["linear"].copy()
     else:
