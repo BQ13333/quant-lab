@@ -1,0 +1,34 @@
+sid,market,exchange,symbol,status,listing_date,delist_date,corporate_actions,fundamentals_source,evidence_pointer,where_found
+600000.SS,China,SSE,600000.SS,active,,,,absent,,docs/HISTORICAL_DATA_LAKE_BACKFILL.md
+600004.SS,China,SSE,600004.SS,active,,,,absent,,docs/HISTORICAL_DATA_LAKE_BACKFILL.md
+0700.HK,Hong Kong,HKEX,0700.HK,active,,,,absent,,src/quant_lab/data/refinitiv_symbol_map.py
+1023.KL,Malaysia,Bursa Malaysia,1023.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1066.KL,Malaysia,Bursa Malaysia,1066.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1082.KL,Malaysia,Bursa Malaysia,1082.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1155.KL,Malaysia,Bursa Malaysia,1155.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1295.KL,Malaysia,Bursa Malaysia,1295.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1818.KL,Malaysia,Bursa Malaysia,1818.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+1961.KL,Malaysia,Bursa Malaysia,1961.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+2445.KL,Malaysia,Bursa Malaysia,2445.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+3816.KL,Malaysia,Bursa Malaysia,3816.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+4065.KL,Malaysia,Bursa Malaysia,4065.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+4197.KL,Malaysia,Bursa Malaysia,4197.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+4677.KL,Malaysia,Bursa Malaysia,4677.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+4707.KL,Malaysia,Bursa Malaysia,4707.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+4863.KL,Malaysia,Bursa Malaysia,4863.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5183.KL,Malaysia,Bursa Malaysia,5183.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5211.KL,Malaysia,Bursa Malaysia,5211.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5225.KL,Malaysia,Bursa Malaysia,5225.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5285.KL,Malaysia,Bursa Malaysia,5285.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5296.KL,Malaysia,Bursa Malaysia,5296.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5347.KL,Malaysia,Bursa Malaysia,5347.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5398.KL,Malaysia,Bursa Malaysia,5398.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5681.KL,Malaysia,Bursa Malaysia,5681.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+5819.KL,Malaysia,Bursa Malaysia,5819.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+6012.KL,Malaysia,Bursa Malaysia,6012.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+6033.KL,Malaysia,Bursa Malaysia,6033.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+6742.KL,Malaysia,Bursa Malaysia,6742.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+6888.KL,Malaysia,Bursa Malaysia,6888.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+6947.KL,Malaysia,Bursa Malaysia,6947.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+7084.KL,Malaysia,Bursa Malaysia,7084.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+8869.KL,Malaysia,Bursa Malaysia,8869.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
