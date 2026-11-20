@@ -1,0 +1,58 @@
+{
+  "as_of": "2026-11-20",
+  "timezone": "Asia/Kuala_Lumpur",
+  "certified": false,
+  "phase1_historical_cost_gate": "not_met",
+  "copied_from": {
+    "repo": "BQ13333/quant-lab",
+    "pull_request": 1,
+    "head": "f13073b1d1344beb9d7d9b0deedb44dd7dff84ef",
+    "file": "src/quant_lab/markets/rules_v1.json",
+    "note": "Inventory only. This branch does not copy the cost engine and does not apply these rates. A PRIMARY label is that file's provenance class, not certification that the rate covers a backtest."
+  },
+  "charter_not_a_broker_quote": {
+    "market": "MY",
+    "commission_rate": 0.0042,
+    "minimum_myr": 12,
+    "where_recorded": "Accepted 16 November 2026 and restated in docs/PROJECT_KICKOFF.md. It lives in quant_lab.lifecycle.registered_decisions on unmerged PR #1."
+  },
+  "gaps": [
+    "No market has a complete source-dated cost stack over a multi-year backtest.",
+    "MY clearing, board lot, and the sub-1 tick, and most HK fee components, start on 2026-11-16 only.",
+    "HK board_lot is null.",
+    "CN handling, management, and transfer rates are null.",
+    "CN main_board_lot 100 and the one-session sell delay cite an HKEX Stock Connect booklet, which does not establish direct A-share rules.",
+    "CN st_band is marked SECONDARY in the source file."
+  ],
+  "markets": {
+    "MY": [
+      {"component": "stamp_unit", "value": 1000, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
+      {"component": "stamp_per_unit", "value": 1, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
+      {"component": "stamp_cap", "value": 1000, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
+      {"component": "clearing_rate", "value": 0.0003, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs"},
+      {"component": "clearing_cap", "value": 1000, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs"},
+      {"component": "board_lot", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot"},
+      {"component": "tick_below_1", "value": 0.005, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot"}
+    ],
+    "HK": [
+      {"component": "stamp_rate", "value": 0.001, "effective_from": "2023-11-17", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.ird.gov.hk/eng/ppr/archives/23111501.htm"},
+      {"component": "trading_rate", "value": 5.65e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "sfc_rate", "value": 2.7e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "afrc_rate", "value": 1.5e-06, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "settlement_rate", "value": 2e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "settlement_min", "value": 2, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "settlement_cap", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
+      {"component": "board_lot", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""}
+    ],
+    "CN": [
+      {"component": "stamp_rate", "value": 0.0005, "effective_from": "2023-08-28", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://m.mof.gov.cn/czxw/202308/t20230827_3904226.htm"},
+      {"component": "handling_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
+      {"component": "management_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
+      {"component": "transfer_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
+      {"component": "st_band", "value": 0.05, "effective_from": "2026-04-24", "effective_until": null, "source_kind": "SECONDARY", "source_url": "https://www.cnstock.com/commonDetail/737124"},
+      {"component": "st_band", "value": 0.1, "effective_from": "2026-07-06", "effective_until": null, "source_kind": "SECONDARY", "source_url": "https://stcn.com/article/detail/3999724.html"},
+      {"component": "main_board_lot", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule."},
+      {"component": "sell_delay_sessions", "value": 1, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule."}
+    ]
+  }
+}

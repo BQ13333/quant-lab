@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from quant_lab.data.jpx_monthly_quotations import (
+    _invalidate_low_denominator_combined,
     build_monthly_quotation_plan,
     conservative_quotation_known_at,
     parse_monthly_quotation_text,
@@ -142,3 +143,19 @@ def test_never_attempted_files_are_prioritized_over_failed_retries(tmp_path: Pat
     )
 
     assert calls[0].endswith("st2_200712.pdf")
+
+
+def test_combined_file_invalidation_accepts_a_string_quality_flag() -> None:
+    plan = pd.DataFrame({"request_id": ["202001-st"], "code_band": ["all"]})
+    status = pd.DataFrame({"request_id": ["202001-st"], "status": ["completed"], "error": [""]})
+    quality = pd.DataFrame(
+        {"request_id": ["202001-st"], "normalized_rows": ["10"], "quality_pass": ["True"]}
+    ).astype({"quality_pass": "string"})
+
+    updated_status, updated_quality, invalidated = _invalidate_low_denominator_combined(
+        plan, status, quality
+    )
+
+    assert invalidated == 1
+    assert updated_status.iloc[0]["status"] == "failed"
+    assert str(updated_quality.iloc[0]["quality_pass"]).lower() == "false"

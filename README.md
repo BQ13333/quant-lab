@@ -12,6 +12,8 @@ promotion authority outside the models.
 > **Research software only.** Nothing in this repository is investment advice,
 > a recommendation, or authorization to trade.
 
+Active scope, decided 20 November 2026, is Bursa Malaysia, China A-shares on the SSE and SZSE, and Hong Kong. Singapore, Indonesia, Japan, Korea, and the United States are frozen. The Beijing Stock Exchange stays out. See [`docs/DECISIONS_2026-11-20.md`](docs/DECISIONS_2026-11-20.md).
+
 ## What is included
 
 - A typed Python research engine for data panels, signals, model tournaments,
