@@ -189,6 +189,8 @@ Immediate work:
 
 ### North Asia Agent
 
+As of 20 November 2026 the active mandate is Bursa Malaysia, China A-shares on the SSE and SZSE, and Hong Kong. Japan and Korea are frozen. The Beijing Stock Exchange stays out. The lists below are the earlier agent brief. See `docs/DECISIONS_2026-11-20.md`.
+
 Markets:
 
 - Hong Kong: HKEX.

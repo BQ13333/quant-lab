@@ -1,5 +1,9 @@
 # Data Source Roadmap
 
+## Mandate as of 20 November 2026
+
+Benjamin Quek limited active research to Bursa Malaysia, China A-shares (SSE and SZSE), and Hong Kong. Singapore, Indonesia, Japan, Korea, and the United States are frozen. The Beijing Stock Exchange stays out. Fundamentals are official filings only: Bursa, HKEXnews, and CNINFO, subject to access rights. No paid feed. The region table and the tickets below are the 12 July 2026 queue. They are not the active mandate. The scope file is `configs/project_market_scope.yaml`. The decision record is `docs/DECISIONS_2026-11-20.md`.
+
 ## Purpose
 
 This roadmap turns the regional data-agent findings into an implementation

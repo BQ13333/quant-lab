@@ -4,6 +4,18 @@
 
 This is a lab. It finds a strategy, checks it, watches it decay, and replaces it. It does not send orders. Brokers, including IBKR, stay unwired. Markets for this programme are Bursa Malaysia, mainland China, and Hong Kong. No crypto, no US markets, no high-frequency trading. Fundamentals and technicals are both in scope, and only where the data can actually be known on the day a decision would have been made. Point-in-time dates, delistings, and costs are mandatory.
 
+## Decisions recorded 20 November 2026, 18:26 MYT
+
+Benjamin Quek closed the five questions in section 4. The record is [docs/DECISIONS_2026-11-20.md](DECISIONS_2026-11-20.md). The scope file is Malaysia, China A-shares (SSE and SZSE), and Hong Kong. Singapore, Indonesia, Japan, Korea, and the United States are frozen. BSE stays out. Ziplime 2.12.0 is allowed only as a lowest-priority research sandbox in a separate environment, file exchange only, and its licence is still unclear (GPL-3.0, a commercial-use restriction, and a README that says the project is moving to AGPL). It is not a dependency. `lime-trader-sdk` stays unwired. Both pull request #1s stay unmerged. The private pull request's base is `outbox/box`, not `main`. The US archive outside git is the copy of record. Japan stays in-tree and dormant. Fundamentals are official public filings only: Bursa, HKEXnews, and CNINFO, subject to access rights. No paid feeds.
+
+The target architecture is the copied blueprint:
+
+- [docs/cloud/EXEC_SUMMARY.md](cloud/EXEC_SUMMARY.md)
+- [docs/cloud/CLOUD_PRODUCTION_BLUEPRINT.md](cloud/CLOUD_PRODUCTION_BLUEPRINT.md)
+- [docs/cloud/architecture.png](cloud/architecture.png)
+
+Still open: Ben must name the human root-account holder. Phase 2 of that blueprint, which is provisioning, needs his separate GO. No cloud accounts and no spend. Historical cost coverage and the per-instrument Hong Kong lot table are inventoried in [docs/HISTORICAL_COST_AND_LOTS.md](HISTORICAL_COST_AND_LOTS.md). Both gates are unmet, which is why spend stays held.
+
 Two repositories:
 
 - Public research framework: [BQ13333/quant-lab](https://github.com/BQ13333/quant-lab), default branch `main` at `5535260` ("publish evidence-first Quant Lab research framework"). MIT.
@@ -115,7 +127,7 @@ Dates are Asia/Kuala_Lumpur. The window is four weeks from today.
 
 ## 4. Open decisions
 
-These block tasks 2 and 3. They do not block the file contract, which admits no orders and changes no lake.
+Answered 20 November 2026, 18:26 MYT. See the block at the top of this file and [docs/DECISIONS_2026-11-20.md](DECISIONS_2026-11-20.md). The questions are kept so this kickoff still shows what was open that morning. They do not block the file contract, which admits no orders and changes no lake.
 
 1. **Scope file.** `configs/project_market_scope.yaml` and the public data-source docs still exclude China and still activate Singapore, Indonesia, Japan, Korea, and the United States. The 20 November direction, the private China lane, and the unmerged market-rules code are Malaysia, China, and Hong Kong. Should the public scope file be edited to that mandate, and should Singapore, Indonesia, Japan, Korea, and US extraction freeze? Inside China, the private lane already treats A-shares and Hong Kong as separate currency verticals and records BSE as absent. Confirm that BSE stays out.
 2. **Ziplime posture.** May a research-only pilot run in a separate environment, exchanging files with quant-lab, under the licence flag in the next section? Until this is a yes, nobody installs it. Live trading and `lime-trader-sdk` are out either way.
@@ -135,17 +147,17 @@ External backtest file contract in this repo.
 
 Tests: `tests/test_external_engine_file_exchange.py`.
 
-### Task 2 — not started
+### Task 2 — next pull request
 
-Point-in-time coverage sheet for identities the lake already has.
+Point-in-time coverage sheet for identities the lake already has. Decision 1 now allows China A-share rows. Official filings only.
 
-For Bursa and HKEX names already on disk, record listing date, delist date, and whether a corporate-action row exists. A name marked inactive with no delist date fails closed. China rows are listed as blocked until decision 1. No new download, no paid source, no change to `china_lake`. Reviewable as a schema plus a reader and a fixture, in a later pull request.
+For Bursa, HKEX, and China A-share names already on disk, record listing date, delist date, and whether a corporate-action row exists. A name marked inactive with no delist date fails closed. BSE stays out. Fundamentals on the sheet, if any, are Bursa, HKEXnews, or CNINFO only. No new download, no paid source, no change to `china_lake`. Reviewable as a schema plus a reader and a fixture, in a later pull request.
 
-### Task 3 — not started
+### Task 3 — allowed, lowest priority, not started in the scope pull request
 
 One-name Bursa smoke of the optional engine, in a separate environment.
 
-Only after decision 2 is yes. Run `ziplime==2.12.0` outside this repo's environment, feed it one daily `.KL` request written by task 1, and bring `result.json` back. The lab admits that file only if task 1's reader accepts it. Do not install ziplime into quant-lab, do not import `lime-trader-sdk`, and do not enable same-bar fills. If decision 2 is no, this task is a one-line note that the pilot will not run.
+Decision 2 is a conditional yes. Run `ziplime==2.12.0` outside this repo's environment, feed it one daily `.KL` request written by task 1, and bring `result.json` back. The lab admits that file only if task 1's reader accepts it. Do not install ziplime into quant-lab, do not import `lime-trader-sdk`, and do not enable same-bar fills. The licence is still unclear. If the separate environment cannot be built without spend, secrets, or accepting that licence, stop and write down the blocker. Do not do it ahead of the scope record or the coverage sheet.
 
 ## Ziplime licence flag
 

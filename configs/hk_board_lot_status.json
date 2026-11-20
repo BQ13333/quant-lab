@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-11-20",
+  "timezone": "Asia/Kuala_Lumpur",
+  "market_wide_default": null,
+  "per_instrument_rows": 0,
+  "gate": "not_met",
+  "reason": "A null market-wide lot is not a per-instrument table. No sourced sid, effective interval, or evidence pointer is on this branch.",
+  "unmerged_pr1_record": {
+    "repo": "BQ13333/quant-lab",
+    "pull_request": 1,
+    "head": "f13073b1d1344beb9d7d9b0deedb44dd7dff84ef",
+    "file": "src/quant_lab/markets/rules_v1.json",
+    "component": "HK.board_lot",
+    "value": null,
+    "effective_from": "2026-11-16",
+    "source_url": "",
+    "source_kind": "NONE"
+  }
+}

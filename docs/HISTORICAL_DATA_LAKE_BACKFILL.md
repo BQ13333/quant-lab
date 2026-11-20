@@ -1,5 +1,9 @@
 # Historical Data Lake Backfill
 
+## Mandate as of 20 November 2026
+
+The active countries in the plan below were Malaysia, Singapore, Indonesia, Hong Kong, South Korea, and Japan, with China excluded. That list is frozen as history. From 20 November 2026 the active mandate is Bursa Malaysia, China A-shares (SSE and SZSE), and Hong Kong. Singapore, Indonesia, Japan, Korea, and the United States are frozen. The Beijing Stock Exchange stays out. Do not start a new extraction from the commands in this file for a frozen market. See `configs/project_market_scope.yaml` and `docs/DECISIONS_2026-11-20.md`.
+
 ## Backtest Depth Standard
 
 Five years of daily OHLCV is enough for plumbing validation, feature smoke tests, and early strategy triage. It is not enough for promotion-grade alpha research. A production research lake should target:

@@ -1,44 +1,82 @@
-version: 1
+version: 2
 name: quant_lab_project_market_scope
-effective_date: 2026-07-12
+effective_date: 2026-11-20
+decided_at: 2026-11-20T18:26:00+08:00
+decided_by: Benjamin Quek
+decision_record: docs/DECISIONS_2026-11-20.md
 
+# Active research mandate. China is A-shares on SSE and SZSE only.
 active_markets:
   - country: Malaysia
+    code: MY
     exchanges: [Bursa Malaysia]
-  - country: Singapore
-    exchanges: [SGX]
-  - country: Indonesia
-    exchanges: [IDX]
+    currency: MYR
+  - country: China
+    code: CN
+    exchanges: [SSE, SZSE]
+    currency: CNY
+    boards: [A-share]
   - country: Hong Kong
+    code: HK
     exchanges: [HKEX]
+    currency: HKD
+
+# Stay in the tree. Do not extract, admit, or research them.
+frozen_markets:
+  - country: Singapore
+    code: SG
+    exchanges: [SGX]
+    reason: frozen_2026-11-20
+  - country: Indonesia
+    code: ID
+    exchanges: [IDX]
+    reason: frozen_2026-11-20
   - country: Japan
+    code: JP
     exchanges: [JPX]
+    reason: in_tree_and_dormant
   - country: South Korea
+    code: KR
     exchanges: [KRX]
+    reason: frozen_2026-11-20
   - country: United States
+    code: US
     exchanges: [NYSE, NASDAQ, NYSE American]
+    reason: outside_git_archive_is_copy_of_record
 
 excluded_markets:
   - country: China
-    exchanges: [SSE, SZSE, BSE]
-    reason: outside_current_quant_project_mandate
+    code: CN
+    exchanges: [BSE]
+    reason: bse_stays_out
   - country: Taiwan
+    code: TW
     exchanges: [TWSE, TPEx]
     reason: outside_current_quant_project_mandate
   - country: Thailand
+    code: TH
     exchanges: [SET]
     reason: parked_outside_current_scope
   - country: Philippines
+    code: PH
     exchanges: [PSE]
     reason: not_tradable_for_project
   - country: Vietnam
+    code: VN
     exchanges: [HOSE, HNX, UPCoM]
     reason: removed_from_project
 
 policy:
   active_queues_must_exclude_excluded_markets: true
+  active_queues_must_exclude_frozen_markets: true
   backtests_must_exclude_excluded_markets: true
   scorecards_must_exclude_excluded_markets: true
   new_vendor_extraction_must_exclude_excluded_markets: true
   preserve_existing_artifacts_for_audit: true
   retain_dormant_parser_compatibility: true
+  live_trading: false
+  crypto: false
+  hft: false
+  paid_feeds: false
+  fundamentals: official_public_filings_only
+  ziplime: research_sandbox_not_a_dependency

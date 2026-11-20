@@ -560,8 +560,21 @@ def _invalidate_low_denominator_combined(
     mask = result_status["request_id"].isin(low_ids) & result_status["status"].eq("completed")
     result_status.loc[mask, "status"] = "failed"
     result_status.loc[mask, "error"] = "combined_parser_denominator_below_1000"
-    result_quality.loc[result_quality["request_id"].isin(low_ids), "quality_pass"] = False
+    if low_ids:
+        # quality_pass is reloaded from CSV. Pandas StringDtype rejects a bool.
+        result_quality.loc[result_quality["request_id"].isin(low_ids), "quality_pass"] = _stored_pass_flag(
+            result_quality["quality_pass"],
+            False,
+        )
     return result_status, result_quality, int(mask.sum())
+
+
+def _stored_pass_flag(column: pd.Series, value: bool) -> object:
+    """Return a pass/fail token the column's dtype will accept."""
+
+    if pd.api.types.is_bool_dtype(column.dtype):
+        return value
+    return "True" if value else "False"
 
 
 def _sha256(path: Path) -> str:
