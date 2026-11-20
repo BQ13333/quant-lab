@@ -1,1 +1,2 @@
 sid,exchange,instrument_code,effective_from,effective_until,known_at,lot_size,source_url,source_kind
+0700.HK,HKEX,00700,2009-08-17,,2009-08-03T00:00:00Z,100,https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/HKSCC/2009/ce_136_2009.pdf,PRIMARY

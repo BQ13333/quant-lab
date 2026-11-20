@@ -85,30 +85,34 @@ def test_decision_record_names_the_held_prs_and_the_open_items() -> None:
     assert "MY/CN/HK" in blueprint
 
 
-def test_historical_cost_gate_is_not_met_and_the_hk_lot_is_null() -> None:
+def test_historical_cost_gate_stays_open_after_dated_intervals() -> None:
     coverage = load_cost_coverage()
     assert historical_cost_gate_met() is False
     assert coverage["certified"] is False
-    hk_lot = [row for row in coverage["markets"]["HK"] if row["component"] == "board_lot"]
-    assert hk_lot == [
-        {
-            "component": "board_lot",
-            "value": None,
-            "effective_from": "2026-11-16",
-            "effective_until": None,
-            "source_kind": "NONE",
-            "source_url": "",
-        }
-    ]
+    assert coverage["phase1_historical_cost_gate"] == "partial"
+    stamps = [row for row in coverage["markets"]["HK"] if row["component"] == "stamp_rate"]
+    assert [row["effective_from"] for row in stamps] == ["2001-09-01", "2021-08-01", "2023-11-17"]
+    handling = next(row for row in coverage["markets"]["CN"] if row["component"] == "handling_rate")
+    assert handling["value"] == 0.0000341
+    assert handling["effective_from"] == "2023-08-28"
+    transfer = next(row for row in coverage["markets"]["CN"] if row["component"] == "transfer_rate")
+    assert transfer["effective_from"] == "2022-08-01"
+    hk_lot = next(row for row in coverage["markets"]["HK"] if row["component"] == "board_lot")
+    assert hk_lot["value"] is None
     assert "BSE" not in coverage["markets"]
 
 
-def test_hk_lot_table_has_no_invented_rows() -> None:
+def test_hk_lot_table_covers_0700_and_not_a_default() -> None:
     table = ROOT / "configs" / "hk_board_lots.csv"
     with table.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    assert rows == []
+    assert [row["sid"] for row in rows] == ["0700.HK"]
     assert lot_table_gate_met() is False
+    assert lot_size("0700.HK", "2024-01-02") == 100
+    with pytest.raises(HkLotUnavailable):
+        lot_size("0700.HK", "2009-08-16")
+    with pytest.raises(HkLotUnavailable):
+        lot_size("0005.HK", "2024-01-02")
     with pytest.raises(HkLotUnavailable):
         lot_size("700.HK", "2024-01-02")
 
