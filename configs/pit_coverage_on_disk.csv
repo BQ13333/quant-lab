@@ -1,6 +1,9 @@
 sid,market,exchange,symbol,status,listing_date,delist_date,corporate_actions,fundamentals_source,evidence_pointer,where_found
+000001.SZ,China,SZSE,000001.SZ,active,,,,absent,,tests/test_external_engine_file_exchange.py
 600000.SS,China,SSE,600000.SS,active,,,,absent,,docs/HISTORICAL_DATA_LAKE_BACKFILL.md
 600004.SS,China,SSE,600004.SS,active,,,,absent,,docs/HISTORICAL_DATA_LAKE_BACKFILL.md
+600519.SS,China,SSE,600519.SS,active,,,,absent,,tests/test_external_engine_file_exchange.py
+0005.HK,Hong Kong,HKEX,0005.HK,active,,,,absent,,tests/test_fx.py
 0700.HK,Hong Kong,HKEX,0700.HK,active,,,,absent,,src/quant_lab/data/refinitiv_symbol_map.py
 1023.KL,Malaysia,Bursa Malaysia,1023.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
 1066.KL,Malaysia,Bursa Malaysia,1066.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
@@ -32,3 +35,4 @@ sid,market,exchange,symbol,status,listing_date,delist_date,corporate_actions,fun
 6947.KL,Malaysia,Bursa Malaysia,6947.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
 7084.KL,Malaysia,Bursa Malaysia,7084.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
 8869.KL,Malaysia,Bursa Malaysia,8869.KL,active,,,,absent,,src/quant_lab/data/asean_universe.py
+MBBM.KL,Malaysia,Bursa Malaysia,MBBM.KL,active,,,,absent,,src/quant_lab/data/refinitiv_symbol_map.py

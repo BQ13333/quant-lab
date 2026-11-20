@@ -6,9 +6,9 @@ The reader is `quant_lab.data.pit_coverage`. The sheet is [`configs/pit_coverage
 
 What is on disk here:
 
-- Thirty Bursa stocks in `src/quant_lab/data/asean_universe.py`. That module says it is a current-survivor starter list, not a point-in-time constituent database.
-- `0700.HK` in `src/quant_lab/data/refinitiv_symbol_map.py`. The file is a vendor symbol map. It is not an HKEXnews filing.
-- `600000.SS` and `600004.SS` in `docs/HISTORICAL_DATA_LAKE_BACKFILL.md`, inside a China smoke note that says not to promote that artifact.
+- Thirty Bursa stocks in `src/quant_lab/data/asean_universe.py`, plus the vendor alias `MBBM.KL` for Maybank in `src/quant_lab/data/refinitiv_symbol_map.py`. The ASEAN module says it is a current-survivor starter list, not a point-in-time constituent database. The alias is not a filing.
+- `0700.HK` in that same symbol map, and `0005.HK` as an instrument in `tests/test_fx.py`.
+- `600000.SS` and `600004.SS` in `docs/HISTORICAL_DATA_LAKE_BACKFILL.md`, inside a China smoke note that says not to promote that artifact. `600519.SS` and `000001.SZ` are the SSE and SZSE symbols the file-exchange tests already use. SZSE is no longer absent from the sheet.
 
 Each of those rows is blocked. The listing date is blank, and corporate actions are not marked present or explicitly absent. An inactive name with no delist date would also be blocked. No row claims a Bursa, HKEXnews, or CNINFO filing, because none of those documents is in this tree.
 

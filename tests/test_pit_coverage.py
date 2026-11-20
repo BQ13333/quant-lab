@@ -38,9 +38,10 @@ def test_on_disk_sheet_blocks_every_committed_name() -> None:
     assert [row.symbol for row in rows if row.market == "Malaysia"] == sorted(
         row.symbol for row in rows if row.market == "Malaysia"
     )
-    assert len([row for row in rows if row.market == "Malaysia"]) == 30
-    assert {row.symbol for row in rows if row.market == "Hong Kong"} == {"0700.HK"}
-    assert {row.symbol for row in rows if row.market == "China"} == {"600000.SS", "600004.SS"}
+    assert len([row for row in rows if row.market == "Malaysia"]) == 31
+    assert {row.symbol for row in rows if row.market == "Hong Kong"} == {"0005.HK", "0700.HK"}
+    assert {row.symbol for row in rows if row.exchange == "SSE"} == {"600000.SS", "600004.SS", "600519.SS"}
+    assert {row.symbol for row in rows if row.exchange == "SZSE"} == {"000001.SZ"}
     assert all(row.exchange != "BSE" for row in rows)
     assert all(row.fundamentals_source == "absent" for row in rows)
     assert all(not assess_row(row).admitted for row in rows)

@@ -169,10 +169,28 @@ def on_disk_identities() -> tuple[CoverageRow, ...]:
     rows.extend(
         [
             _gap_row(
+                "MBBM.KL",
+                "Malaysia",
+                "Bursa Malaysia",
+                "src/quant_lab/data/refinitiv_symbol_map.py",
+            ),
+            _gap_row(
+                "0005.HK",
+                "Hong Kong",
+                "HKEX",
+                "tests/test_fx.py",
+            ),
+            _gap_row(
                 "0700.HK",
                 "Hong Kong",
                 "HKEX",
                 "src/quant_lab/data/refinitiv_symbol_map.py",
+            ),
+            _gap_row(
+                "000001.SZ",
+                "China",
+                "SZSE",
+                "tests/test_external_engine_file_exchange.py",
             ),
             _gap_row(
                 "600000.SS",
@@ -185,6 +203,12 @@ def on_disk_identities() -> tuple[CoverageRow, ...]:
                 "China",
                 "SSE",
                 "docs/HISTORICAL_DATA_LAKE_BACKFILL.md",
+            ),
+            _gap_row(
+                "600519.SS",
+                "China",
+                "SSE",
+                "tests/test_external_engine_file_exchange.py",
             ),
         ]
     )
