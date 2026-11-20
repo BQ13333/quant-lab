@@ -2,57 +2,69 @@
   "as_of": "2026-11-20",
   "timezone": "Asia/Kuala_Lumpur",
   "certified": false,
-  "phase1_historical_cost_gate": "not_met",
+  "phase1_historical_cost_gate": "partial",
   "copied_from": {
     "repo": "BQ13333/quant-lab",
     "pull_request": 1,
     "head": "f13073b1d1344beb9d7d9b0deedb44dd7dff84ef",
     "file": "src/quant_lab/markets/rules_v1.json",
-    "note": "Inventory only. This branch does not copy the cost engine and does not apply these rates. A PRIMARY label is that file's provenance class, not certification that the rate covers a backtest."
+    "note": "Started from the unmerged rules file. Intervals below replace a capture date of 2026-11-16 where an official page states a real effective date. A PRIMARY label is a provenance class, not a certification that the rate covers every earlier year."
   },
   "charter_not_a_broker_quote": {
     "market": "MY",
     "commission_rate": 0.0042,
     "minimum_myr": 12,
-    "where_recorded": "Accepted 16 November 2026 and restated in docs/PROJECT_KICKOFF.md. It lives in quant_lab.lifecycle.registered_decisions on unmerged PR #1."
+    "where_recorded": "Accepted 16 November 2026 and restated in docs/PROJECT_KICKOFF.md. It lives in quant_lab.lifecycle.registered_decisions on unmerged PR #1. It is not a Bursa commission schedule."
   },
+  "closed_this_pass": [
+    "HK stamp duty now has dated IRD intervals instead of a single open-ended 2023 rate.",
+    "HK trading fee, SFC levy, and AFRC levy now start on the dates the official pages state.",
+    "CN handling fee is the SSE and SZSE rate from 28 August 2023, not null.",
+    "CN transfer fee is the ChinaClear rate from 1 August 2022, not null.",
+    "0700.HK has a per-instrument lot from 17 August 2009. The market-wide HK lot stays null."
+  ],
   "gaps": [
-    "No market has a complete source-dated cost stack over a multi-year backtest.",
-    "MY clearing, board lot, and the sub-1 tick, and most HK fee components, start on 2026-11-16 only.",
-    "HK board_lot is null.",
-    "CN handling, management, and transfer rates are null.",
-    "CN main_board_lot 100 and the one-session sell delay cite an HKEX Stock Connect booklet, which does not establish direct A-share rules.",
-    "CN st_band is marked SECONDARY in the source file."
+    "No market has a complete source-dated cost stack over a multi-year backtest. Brokerage is still the charter, not an official schedule.",
+    "Bursa clearing, the 100-share board lot, and the tick table are stated on the official pages and those pages do not give a start date.",
+    "HK settlement fee still has no start date on the sources read this pass.",
+    "The HK trading-fee circular says the rate was revised from 0.005% and does not date when 0.005% began.",
+    "CN handling before 28 August 2023 is described as 0.00487% without a start date in the SSE notice read here.",
+    "CN regulatory fee is stated on the January 2026 SZSE table and that table does not date the start.",
+    "CN main-board lot of 100 and the one-session sell delay still cite an HKEX Stock Connect booklet.",
+    "CN st_band is still SECONDARY.",
+    "0005.HK has no sourced board lot."
   ],
   "markets": {
     "MY": [
       {"component": "stamp_unit", "value": 1000, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
       {"component": "stamp_per_unit", "value": 1, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
       {"component": "stamp_cap", "value": 1000, "effective_from": "2023-07-13", "effective_until": "2028-07-12", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/sites/5d809dcf39fba22790cad230/assets/64afd1955b711a2b9fe10555/PUA_208_2023.pdf"},
-      {"component": "clearing_rate", "value": 0.0003, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs"},
-      {"component": "clearing_cap", "value": 1000, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs"},
-      {"component": "board_lot", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot"},
-      {"component": "tick_below_1", "value": 0.005, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot"}
+      {"component": "clearing_rate", "value": 0.0003, "effective_from": null, "effective_until": null, "observed_on": "2026-11-20", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs", "limitation": "Official page states 0.03% capped at RM1000 with no minimum for on-market contracts. It does not state a start date."},
+      {"component": "clearing_cap", "value": 1000, "effective_from": null, "effective_until": null, "observed_on": "2026-11-20", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/transaction_costs", "limitation": "Same page. No start date."},
+      {"component": "board_lot", "value": 100, "effective_from": null, "effective_until": null, "observed_on": "2026-11-20", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot", "limitation": "Official page says shares are normally traded in board lots of 100 units. It does not state a start date. This is a market convention on that page, not a per-instrument table."},
+      {"component": "tick_below_1", "value": 0.005, "effective_from": null, "effective_until": null, "observed_on": "2026-11-20", "source_kind": "PRIMARY", "source_url": "https://www.bursamalaysia.com/trade/trading_resources/equities/board_lot", "limitation": "Table I says 0.5 sen below RM1. The page points at RR7 of 2009 and does not quote that circular's effective date."}
     ],
     "HK": [
-      {"component": "stamp_rate", "value": 0.001, "effective_from": "2023-11-17", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.ird.gov.hk/eng/ppr/archives/23111501.htm"},
-      {"component": "trading_rate", "value": 5.65e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "sfc_rate", "value": 2.7e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "afrc_rate", "value": 1.5e-06, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "settlement_rate", "value": 2e-05, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "settlement_min", "value": 2, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "settlement_cap", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en"},
-      {"component": "board_lot", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""}
+      {"component": "stamp_rate", "value": 0.001, "effective_from": "2001-09-01", "effective_until": "2021-07-31", "source_kind": "PRIMARY", "source_url": "https://www.ird.gov.hk/eng/pdf/sd_stock_rates.pdf"},
+      {"component": "stamp_rate", "value": 0.0013, "effective_from": "2021-08-01", "effective_until": "2023-11-16", "source_kind": "PRIMARY", "source_url": "https://www.ird.gov.hk/eng/pdf/sd_stock_rates.pdf"},
+      {"component": "stamp_rate", "value": 0.001, "effective_from": "2023-11-17", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2023/ce_SEHK_CT_158_2023.pdf"},
+      {"component": "trading_rate", "value": 0.0000565, "effective_from": "2023-01-01", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2022/086_22_SEHK_OP_Trading-Fee_e.pdf", "limitation": "Circular says the rate was revised from 0.005% to 0.00565% on 1 January 2023 and does not date the start of 0.005%."},
+      {"component": "sfc_rate", "value": 0.000027, "effective_from": "2014-11-01", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"},
+      {"component": "afrc_rate", "value": 0.0000015, "effective_from": "2022-01-01", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/Services/Rules-and-Forms-and-Fees/Fees/Securities-(Hong-Kong)/Trading/Transaction?sc_lang=en"},
+      {"component": "settlement_rate", "value": 2e-05, "effective_from": null, "effective_until": null, "observed_on": "2026-11-16", "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en", "limitation": "Copied from unmerged PR #1. This pass did not find a start date."},
+      {"component": "settlement_min", "value": 2, "effective_from": null, "effective_until": null, "observed_on": "2026-11-16", "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en", "limitation": "Copied from unmerged PR #1. This pass did not find a start date."},
+      {"component": "settlement_cap", "value": 100, "effective_from": null, "effective_until": null, "observed_on": "2026-11-16", "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/services/rules-and-forms-and-fees/fees/securities-%28hong-kong%29/trading/transaction?sc_lang=en", "limitation": "Copied from unmerged PR #1. This pass did not find a start date."},
+      {"component": "board_lot", "value": null, "effective_from": null, "effective_until": null, "source_kind": "NONE", "source_url": "", "limitation": "Per-instrument lots are in configs/hk_board_lots.csv. A market-wide number is not a substitute."}
     ],
     "CN": [
       {"component": "stamp_rate", "value": 0.0005, "effective_from": "2023-08-28", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://m.mof.gov.cn/czxw/202308/t20230827_3904226.htm"},
-      {"component": "handling_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
-      {"component": "management_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
-      {"component": "transfer_rate", "value": null, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "NONE", "source_url": ""},
+      {"component": "handling_rate", "value": 0.0000341, "effective_from": "2023-08-28", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.sse.com.cn/services/tradingservice/charge/ssecharge/c/c_20230818_5725343.shtml", "limitation": "SSE A-share auction handling fee, both sides. The same page says the previous rate was 0.00487% and does not date when that rate began. SZSE states the same 28 August 2023 change at https://www.szse.cn/English/services/trading/tradingFees/index.html."},
+      {"component": "management_rate", "value": 0.00002, "effective_from": null, "effective_until": null, "observed_on": "2026-01", "source_kind": "PRIMARY", "source_url": "https://www.szse.cn/marketServices/deal/payFees/index.html", "limitation": "SZSE January 2026 table: CSRC regulatory fee 0.02 per mille, both sides. The table does not state a start date."},
+      {"component": "transfer_rate", "value": 0.00002, "effective_from": "2022-08-01", "effective_until": null, "source_kind": "PRIMARY", "source_url": "http://www.chinaclear.cn/zdjs/dsj/about_dsj.shtml", "limitation": "ChinaClear chronology: stock transfer fee unified at 0.02 per mille charged to each side from 1 August 2022, after the 28 April 2022 notice. The notice PDF was not downloaded."},
       {"component": "st_band", "value": 0.05, "effective_from": "2026-04-24", "effective_until": null, "source_kind": "SECONDARY", "source_url": "https://www.cnstock.com/commonDetail/737124"},
       {"component": "st_band", "value": 0.1, "effective_from": "2026-07-06", "effective_until": null, "source_kind": "SECONDARY", "source_url": "https://stcn.com/article/detail/3999724.html"},
-      {"component": "main_board_lot", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule."},
-      {"component": "sell_delay_sessions", "value": 1, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule."}
+      {"component": "main_board_lot", "value": 100, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule. Left unchanged."},
+      {"component": "sell_delay_sessions", "value": 1, "effective_from": "2026-11-16", "effective_until": null, "source_kind": "PRIMARY", "source_url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Getting-Started/Information-Booklet-and-FAQ/Investor_Book_En.pdf", "limitation": "Stock Connect booklet. Not a direct SSE/SZSE rule. Left unchanged."}
     ]
   }
 }

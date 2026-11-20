@@ -2,18 +2,11 @@
   "as_of": "2026-11-20",
   "timezone": "Asia/Kuala_Lumpur",
   "market_wide_default": null,
-  "per_instrument_rows": 0,
-  "gate": "not_met",
-  "reason": "A null market-wide lot is not a per-instrument table. No sourced sid, effective interval, or evidence pointer is on this branch.",
-  "unmerged_pr1_record": {
-    "repo": "BQ13333/quant-lab",
-    "pull_request": 1,
-    "head": "f13073b1d1344beb9d7d9b0deedb44dd7dff84ef",
-    "file": "src/quant_lab/markets/rules_v1.json",
-    "component": "HK.board_lot",
-    "value": null,
-    "effective_from": "2026-11-16",
-    "source_url": "",
-    "source_kind": "NONE"
-  }
+  "per_instrument_rows": 1,
+  "gate": "partial",
+  "on_disk_hk_symbols": ["0005.HK", "0700.HK"],
+  "sourced_symbols": ["0700.HK"],
+  "unsourced_symbols": ["0005.HK"],
+  "reason": "0700.HK is 100 shares from 17 August 2009. HKSCC circular ce_136_2009 says the lot changed from 200 to 100 that day. The 9 June 2023 HKEXnews announcement of the RMB counter still states a board lot of 100 for 00700. 0005.HK is on the coverage sheet and has no sourced lot in this pass. A market-wide default is not used. The circular does not date when the 200-share lot began, so that earlier interval is not written.",
+  "confirmation_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2023/0609/2023060900580.pdf"
 }
