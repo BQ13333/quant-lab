@@ -81,8 +81,6 @@ _EVENT_ACTOR_TYPES = {
     "validation_artifact_attached": {"deterministic_python"},
     "validation_admitted": {"deterministic_python"},
     "human_decision_verified": {"authorized_human"},
-    # A deterministic controller can park a run for missing data; only a
-    # separately authorized human can supersede a previously approved run.
     "promotion_transition": {"controller", "authorized_human"},
 }
 

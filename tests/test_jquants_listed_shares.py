@@ -246,7 +246,7 @@ def test_backfill_retains_raw_pages_hashes_future_events_and_revisions(tmp_path)
 
     assert artifacts.manifest["status"] == "complete"
     assert len(artifacts.page_manifest) == 3
-    assert len(artifacts.share_ledger) == 2  # distinct corrections are not collapsed
+    assert len(artifacts.share_ledger) == 2
     assert len(artifacts.share_change_ledger) == 1
     assert artifacts.share_change_ledger.loc[0, "effective_date"] == "2027-01-01"
     assert artifacts.share_change_ledger.loc[0, "known_at_jst"] == "2024-01-09T09:00:00+09:00"

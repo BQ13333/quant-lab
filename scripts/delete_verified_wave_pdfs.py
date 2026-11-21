@@ -13,8 +13,6 @@ from pathlib import Path
 from typing import Any
 
 
-# Deliberately limited to the newly verified sources. Wave 1/2 and all legacy
-# or user-owned PDFs are outside this deletion script's authorized scope.
 WAVES = (
     ("wave3", "ACQ-WAVE3-DEPTH-20260712", 42),
     ("wave4", "ACQ-WAVE4-SYNTHESIS-20260712", 36),
@@ -250,7 +248,6 @@ def main() -> None:
                 }
             )
 
-    # Persist the pre-deletion evidence before any unlink operation.
     write_csv(ledger_path, rows)
     if args.apply:
         deleted_at = datetime.now(timezone.utc).isoformat()

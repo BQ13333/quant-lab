@@ -1099,7 +1099,6 @@ def _last_weekday(year: int, month: int, weekday: int) -> date:
 
 
 def _easter_date(year: int) -> date:
-    # Anonymous Gregorian algorithm, valid for the Gregorian calendar.
     a = year % 19
     b = year // 100
     c = year % 100

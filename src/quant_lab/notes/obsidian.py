@@ -18,7 +18,6 @@ class ObsidianNote:
     dataview_query: str = ""
 
     def __post_init__(self) -> None:
-        # Deduplicate tags and backlinks while preserving order
         object.__setattr__(self, "tags", list(dict.fromkeys(self.tags)))
         object.__setattr__(self, "backlinks", list(dict.fromkeys(self.backlinks)))
 
@@ -72,7 +71,6 @@ def write_note(vault_root: str | Path, relative_path: str | Path, note: Obsidian
     path = Path(vault_root) / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Handle path collisions gracefully
     if path.exists():
         counter = 1
         original = path

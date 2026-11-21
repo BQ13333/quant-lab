@@ -52,29 +52,22 @@ from quant_lab.validation.metrics import max_drawdown, sharpe_ratio
 def _upgraded_model_suite(prefix: str = "asean", groups: pd.Series | None = None) -> list:
     """Build expanded model zoo for ASEAN upgraded research."""
     models = [
-        # Low volatility
         LowVolatilityModel(name=f"{prefix}_lowvol_63", lookback=63),
         LowVolatilityModel126(name=f"{prefix}_lowvol_126", lookback=126),
         LowVolatilityModel252(name=f"{prefix}_lowvol_252", lookback=252),
-        # Momentum
         MomentumModel21(name=f"{prefix}_mom_21", lookback=21),
         MomentumModel(name=f"{prefix}_mom_63", lookback=63),
         MomentumModel126(name=f"{prefix}_mom_126", lookback=126),
         MomentumModel252(name=f"{prefix}_mom_252", lookback=252),
-        # Volatility-adjusted momentum
         VolatilityAdjustedMomentumModel(name=f"{prefix}_vam_63", lookback=63, volatility_lookback=63),
         VolatilityAdjustedMomentumModel126(name=f"{prefix}_vam_126", lookback=126, volatility_lookback=63),
         VolatilityAdjustedMomentumModelVol21(name=f"{prefix}_vam_vol21", lookback=63, volatility_lookback=21),
-        # Mean reversion
         MeanReversionModel(name=f"{prefix}_rev_5", lookback=5),
         MeanReversionModel21(name=f"{prefix}_rev_21", lookback=21),
         MeanReversionModel63(name=f"{prefix}_rev_63", lookback=63),
-        # Time-series momentum
         TimeSeriesMomentumModel(name=f"{prefix}_tsmom_63", lookback=63),
         TimeSeriesMomentumModel(name=f"{prefix}_tsmom_126", lookback=126, scale_by_vol=True),
-        # Breakout
         BreakoutModel(name=f"{prefix}_breakout_20", lookback=20),
-        # Trend + low vol ensemble
         TrendLowVolEnsembleModel(
             name=f"{prefix}_trend_lowvol_ensemble",
             trend_model=MomentumModel(name=f"{prefix}_trend_mom_63", lookback=63),
@@ -82,7 +75,6 @@ def _upgraded_model_suite(prefix: str = "asean", groups: pd.Series | None = None
         ),
     ]
 
-    # Add group-aware models if country mapping is available
     if groups is not None and not groups.empty:
         models.extend([
             CountryRelativeMomentumModel(name=f"{prefix}_ctry_rel_mom_63", lookback=63, groups=groups),
@@ -181,9 +173,6 @@ def run_asean_upgraded_research(
     output_path.mkdir(parents=True, exist_ok=True)
     vault_path = Path(vault_root)
 
-    # ------------------------------------------------------------------
-    # 1. Run tournaments at multiple cost levels
-    # ------------------------------------------------------------------
     cost_frames = []
     for cost_bps in cost_bps_grid:
         frame = _run_upgraded_tournaments(
@@ -207,9 +196,6 @@ def run_asean_upgraded_research(
     cost_sensitivity.to_csv(output_path / "cost_sensitivity.csv", index=False)
     best_by_cost.to_csv(output_path / "best_by_cost.csv", index=False)
 
-    # ------------------------------------------------------------------
-    # 2. Build leaderboard at baseline cost (15 bps)
-    # ------------------------------------------------------------------
     baseline_cost = 15.0
     baseline_frame = cost_sensitivity.loc[cost_sensitivity["cost_bps"] == baseline_cost].copy()
     if not baseline_frame.empty:
@@ -228,9 +214,6 @@ def run_asean_upgraded_research(
     ).reset_index(drop=True)
     leaderboard.to_csv(output_path / "leaderboard.csv", index=False)
 
-    # ------------------------------------------------------------------
-    # 3. Diagnostics
-    # ------------------------------------------------------------------
     diagnostics = {}
     if not leaderboard.empty:
         diag_summary = generate_diagnostics_summary(
@@ -239,9 +222,6 @@ def run_asean_upgraded_research(
         )
         diagnostics["diagnostics_summary"] = diag_summary
 
-    # ------------------------------------------------------------------
-    # 4. Promotion gate assessment
-    # ------------------------------------------------------------------
     gate = ValidationGate()
     promoted_models = []
     failed_models = []
@@ -265,9 +245,6 @@ def run_asean_upgraded_research(
         gaps.append("Continue stress testing with FX shocks and liquidity constraints.")
         gaps.append("Evaluate regime-conditioned models for drawdown control.")
 
-    # ------------------------------------------------------------------
-    # 5. Write Obsidian notes
-    # ------------------------------------------------------------------
     note_paths = _write_upgraded_obsidian_notes(
         vault_root=vault_path,
         run_id=run_id,
@@ -312,7 +289,6 @@ def _write_upgraded_obsidian_notes(
     best = leaderboard.iloc[0].to_dict() if not leaderboard.empty else {}
     artifact_link = artifact_dir.resolve()
 
-    # Index note
     summary = [
         f"Run id: `{run_id}`",
         f"Artifact directory: `{artifact_link}`",
@@ -346,7 +322,6 @@ def _write_upgraded_obsidian_notes(
         )
     )
 
-    # Validation report
     validation_body = [
         "## Leaderboard",
         _markdown_table(leaderboard) if not leaderboard.empty else "No leaderboard.",
@@ -377,7 +352,6 @@ def _write_upgraded_obsidian_notes(
         )
     )
 
-    # Cost sensitivity
     cost_body = [
         f"Artifact directory: `{artifact_link}`",
         "",
@@ -403,7 +377,6 @@ def _write_upgraded_obsidian_notes(
         )
     )
 
-    # Failure modes
     failure_body = [
         f"Run ID: `{run_id}`",
         "",
@@ -426,7 +399,6 @@ def _write_upgraded_obsidian_notes(
         )
     )
 
-    # Next research queue
     queue_body = [
         f"Run ID: `{run_id}`",
         "",

@@ -51,7 +51,6 @@ def combinatorial_purged_cv_splits(
         end = start + group_size if i < n_splits - 1 else n
         groups.append(index[start:end])
 
-    # Test group count = floor(n_splits / 2)
     test_group_count = n_splits // 2
     if test_group_count < 1 or test_group_count >= n_splits:
         raise ValueError("invalid test_group_count derived from n_splits")

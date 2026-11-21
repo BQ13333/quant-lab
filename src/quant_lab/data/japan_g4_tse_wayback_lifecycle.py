@@ -290,7 +290,7 @@ class SequentialFetcher:
                 )
                 if response.status not in {408, 425, 429, 500, 502, 503, 504}:
                     return response, attempts
-            except Exception as exc:  # Network errors are evidence, not zero observations.
+            except Exception as exc:
                 last_error = exc
                 attempts.append(
                     {
@@ -304,7 +304,7 @@ class SequentialFetcher:
                 time.sleep(self.sleep_seconds * attempt)
         if last_error is not None and all(item["status"] == 0 for item in attempts):
             raise AcquisitionError(f"request failed after bounded retries: {url}") from last_error
-        return response, attempts  # type: ignore[possibly-undefined]
+        return response, attempts
 
     def _pace(self) -> None:
         now = time.monotonic()

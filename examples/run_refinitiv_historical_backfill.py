@@ -41,8 +41,6 @@ def _load_plan_row_ids(path: str | None, *, label: str, required: bool = False) 
     if "plan_row_id" not in frame.columns:
         raise ValueError(f"{label} plan-row CSV is missing plan_row_id: {path}")
     plan_row_ids = {str(value) for value in frame["plan_row_id"].dropna().astype(str) if str(value)}
-    # ``required`` proves that the controller supplied an explicit ledger. A
-    # header-only quarantine is a valid declaration that no rows are excluded.
     return plan_row_ids
 
 

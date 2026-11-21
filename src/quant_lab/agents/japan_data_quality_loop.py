@@ -32,8 +32,6 @@ _G4_COMPONENT_ALIASES = {
 @dataclass(frozen=True)
 class JapanDataQualityPaths:
     security_master_dir: Path
-    # Retained for callers that still point at the legacy quote-level map. It is
-    # diagnostic only and can never substitute for the two validated maps below.
     symbol_map_dir: Path | None = None
     historical_dir: Path | None = None
     depth_dir: Path | None = None

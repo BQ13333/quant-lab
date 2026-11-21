@@ -671,7 +671,6 @@ def _parse_json_object(content: bytes, kind: str) -> dict[str, Any]:
         raise DataAdmissionError(f"{kind} must contain UTF-8 JSON") from exc
     if not isinstance(payload, Mapping):
         raise DataAdmissionError(f"{kind} must contain an object")
-    # Canonical JSON serialization also rejects NaN and Infinity recursively.
     try:
         _canonical_bytes(dict(payload))
     except (TypeError, ValueError) as exc:
@@ -1282,10 +1281,6 @@ def verify_data_admission(
     current_tree = git_output("rev-parse", "HEAD^{tree}")
     if current_commit != execution["code_commit"] or current_tree != code_snapshot["git_tree"]:
         raise DataAdmissionError("execution contract is not bound to the checked-out Git tree")
-    # The signed tree identifies the entire repository, so the cleanliness claim
-    # must cover the entire checkout too.  Limiting this check to the explicitly
-    # frozen source rows would let an altered transitive import execute outside
-    # the signed source bundle while ``clean_tree`` still appeared true.
     git_output("diff", "--exit-code", "HEAD")
     if git_output("ls-files", "--others", "--exclude-standard"):
         raise DataAdmissionError("repository contains untracked files outside the bound Git snapshot")

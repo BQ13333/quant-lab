@@ -62,7 +62,7 @@ def download(url: str, target: Path, retries: int, timeout: int) -> tuple[str, s
                         if chunk:
                             handle.write(chunk)
                 return str(response.url), str(response.headers.get("content-type") or "")
-        except Exception as exc:  # noqa: BLE001 - recorded without credentials.
+        except Exception as exc:
             error = exc
             target.unlink(missing_ok=True)
             if attempt < retries:
@@ -145,7 +145,7 @@ def main(argv: list[str]) -> int:
                     "download_error": "",
                 }
             )
-        except Exception as exc:  # noqa: BLE001 - every failure stays in the manifest.
+        except Exception as exc:
             target.unlink(missing_ok=True)
             row.update({"download_status": "download_failed", "download_error": f"{type(exc).__name__}: {exc}"})
         write_csv(manifest, output_fields, rows)

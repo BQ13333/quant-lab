@@ -295,7 +295,7 @@ def run_cross_market_batch(
                     "status": "completed",
                 }
             )
-        except Exception as exc:  # pragma: no cover - failure path is preserved in artifacts.
+        except Exception as exc:
             failure_rows.append(
                 {
                     "batch_spec_id": spec.spec_id,

@@ -890,7 +890,7 @@ def _key_set(frame: pd.DataFrame) -> set[tuple[str, str, str]]:
 
 
 def _row_key(row: dict[str, Any]) -> tuple[str, str, str]:
-    return tuple(str(row.get(column, "")) for column in EVENT_KEY)  # type: ignore[return-value]
+    return tuple(str(row.get(column, "")) for column in EVENT_KEY)
 
 
 def _explicit_english_side(text: str) -> str:

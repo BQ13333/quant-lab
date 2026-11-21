@@ -9,7 +9,6 @@ def test_cpcv_no_overlap():
     splits = list(combinatorial_purged_cv_splits(index, n_splits=6, purge=3, embargo=2))
     assert len(splits) > 0
     for split in splits:
-        # No overlapping index values between train and test
         overlap = split.train_indices.intersection(split.test_indices)
         assert len(overlap) == 0, "train and test overlap"
 
@@ -17,9 +16,7 @@ def test_cpcv_no_overlap():
 def test_cpcv_all_folds_present():
     index = pd.bdate_range("2024-01-01", periods=60)
     splits = list(combinatorial_purged_cv_splits(index, n_splits=4, purge=2, embargo=1))
-    # C(4,2) = 6 combinations, but some may be dropped if purge/embargo wipes train
     assert len(splits) >= 1
-    # Verify total expected combinations when feasible
     assert len(splits) <= 6
 
 

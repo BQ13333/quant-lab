@@ -124,9 +124,7 @@ def test_promote_fails_high_turnover():
 
 def test_promote_survives_2x_cost():
     gate = ValidationGate()
-    # Very high turnover -> 2x cost wipes out Sharpe
     returns = pd.Series([0.001] * 200)
-    # Varying weights to produce actual turnover
     weights = pd.DataFrame({
         "a": [0.5, -0.5] * 100,
         "b": [0.5, 0.5] * 100,

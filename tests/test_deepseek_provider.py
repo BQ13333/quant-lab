@@ -236,7 +236,7 @@ def test_deepseek_accepts_one_json_markdown_fence_but_still_validates_contract()
         body["choices"] = [choice]
         return body
 
-    transport.post_json = fenced  # type: ignore[method-assign]
+    transport.post_json = fenced
     result = DeepSeekProvider(transport=transport, key_loader=lambda: "unit-test-key").generate(
         cloud_request(), model=DEEPSEEK_MODEL
     )
@@ -256,7 +256,7 @@ def test_malformed_deepseek_output_carries_a_redacted_usage_receipt():
         body["choices"] = [choice]
         return body
 
-    transport.post_json = malformed  # type: ignore[method-assign]
+    transport.post_json = malformed
     with pytest.raises(MalformedModelOutput) as caught:
         DeepSeekProvider(transport=transport, key_loader=lambda: "unit-test-key").generate(
             cloud_request(), model=DEEPSEEK_MODEL

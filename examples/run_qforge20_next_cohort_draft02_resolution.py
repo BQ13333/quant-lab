@@ -62,7 +62,7 @@ def _persist_json(payload: object, path: Path) -> Path:
 
 def _targeted_context(protocol: dict[str, object]) -> dict[str, object]:
     hypotheses = []
-    for raw in protocol["hypotheses"]:  # type: ignore[index]
+    for raw in protocol["hypotheses"]:
         item = dict(raw)
         hypotheses.append(
             {
@@ -78,7 +78,7 @@ def _targeted_context(protocol: dict[str, object]) -> dict[str, object]:
                 )
             }
         )
-    common = dict(protocol["common_contract"])  # type: ignore[arg-type]
+    common = dict(protocol["common_contract"])
     common.pop("point_in_time_warning", None)
     return {
         "protocol_id": protocol["protocol_id"],
@@ -87,7 +87,7 @@ def _targeted_context(protocol: dict[str, object]) -> dict[str, object]:
         "kiv_pair_contract": protocol["kiv_hypotheses"],
         "validation": protocol["validation"],
         "common_contract": common,
-        "approved_resolution_issue_ids": protocol["revision_lineage"][  # type: ignore[index]
+        "approved_resolution_issue_ids": protocol["revision_lineage"][
             "resolution_issue_ids"
         ],
         "targeted_question": (
@@ -120,7 +120,7 @@ def main() -> None:
     )
     context = _targeted_context(protocol)
     role_ids = tuple(
-        protocol["revision_lineage"]["targeted_resolution"]["role_ids"]  # type: ignore[index]
+        protocol["revision_lineage"]["targeted_resolution"]["role_ids"]
     )
     if role_ids != (
         "selection_bias_validation_specialist",

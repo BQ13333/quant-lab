@@ -282,7 +282,7 @@ def _read_csv(path: Path, issue: Any) -> pd.DataFrame:
         return pd.DataFrame()
     try:
         return pd.read_csv(path, dtype=str, keep_default_na=False)
-    except Exception as exc:  # pragma: no cover - defensive artifact boundary
+    except Exception as exc:
         issue("csv_unreadable", f"{path}: {exc}")
         return pd.DataFrame()
 

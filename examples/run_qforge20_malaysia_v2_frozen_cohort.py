@@ -447,7 +447,7 @@ def main() -> None:
             evidence,
             trial_id=reservation_by_arm[arm.arm_id].trial_id,
             universe=universe,
-            config=None,  # type: ignore[arg-type]
+            config=None,
         )
         audit.validate(candidate_id)
         audit_payload = audit.to_dict()

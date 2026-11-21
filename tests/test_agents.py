@@ -71,12 +71,10 @@ def test_nine_agent_workflow_compiles_and_runs(tmp_path):
     )
     result = graph.invoke(state)
 
-    # Status
     assert result["workflow_stage"] == "reporting_complete"
     assert result["workflow_status"] == "complete"
     assert result["validation_status"] == "not_run"
 
-    # New fields populated
     assert result["features"] == [
         "momentum_21_63_126",
         "volatility_regime",
@@ -93,10 +91,8 @@ def test_nine_agent_workflow_compiles_and_runs(tmp_path):
     ]
     assert result["optimization_result"] == {}
 
-    # Eight machine stages run. The human gate stays closed until validation passes.
     assert len(result["audit_log"]) == 8
 
-    # Obsidian notes written
     assert len(result["obsidian_notes"]) == 8
     for path in result["obsidian_notes"]:
         assert path.startswith(str(tmp_path))
@@ -131,7 +127,6 @@ def test_portfolio_optimizer_node(tmp_path):
 
 def test_human_approval_node_stays_closed_before_deterministic_validation(tmp_path):
     state = make_test_state(tmp_path, run_id="APPROVAL-TEST")
-    # Pre-populate some state so the note body is complete
     state["candidate_models"] = ["model_a"]
     state["allocators"] = ["alloc_a"]
     state["validation_gates"] = ["gate_a"]
@@ -161,17 +156,14 @@ def test_fallback_workflow_without_langgraph(tmp_path):
     import importlib
     import sys
 
-    # Force the module to re-import without langgraph
-    # We do this by temporarily removing langgraph from sys.modules and mocking
     mod_name = "quant_lab.agents.workflow"
     if mod_name in sys.modules:
         del sys.modules[mod_name]
 
-    # Save original langgraph module if present
     orig = sys.modules.get("langgraph")
     if "langgraph" in sys.modules:
         del sys.modules["langgraph"]
-    sys.modules["langgraph"] = None  # type: ignore[assignment]
+    sys.modules["langgraph"] = None
 
     try:
         from quant_lab.agents.workflow import build_research_workflow, default_research_state
@@ -189,7 +181,6 @@ def test_fallback_workflow_without_langgraph(tmp_path):
         assert result["workflow_status"] == "complete"
         assert len(result["obsidian_notes"]) == 8
     finally:
-        # Restore
         if orig is not None:
             sys.modules["langgraph"] = orig
         elif "langgraph" in sys.modules:

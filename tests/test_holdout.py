@@ -24,7 +24,7 @@ def test_assert_no_leakage_passes():
     search_results = [
         {"params": {"a": 1}, "fold_dates": [index[10], index[20]]},
     ]
-    manager.assert_no_holdout_optimization(search_results)  # should not raise
+    manager.assert_no_holdout_optimization(search_results)
 
 
 def test_assert_no_leakage_raises():

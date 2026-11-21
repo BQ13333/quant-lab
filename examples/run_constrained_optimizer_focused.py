@@ -24,7 +24,6 @@ def _model_from_leaderboard_row(row: pd.Series, group_map: pd.Series | None) -> 
     """Instantiate the correct model class from a leaderboard row."""
     name = row["model_name"]
 
-    # Extract model type from name
     if "lowvol_63" in name:
         return LowVolatilityModel(name=name, lookback=63)
     if "lowvol_126" in name:
@@ -71,7 +70,6 @@ def _model_from_leaderboard_row(row: pd.Series, group_map: pd.Series | None) -> 
     if "cross_ctry_63" in name and group_map is not None:
         return CrossCountryRankingModel(name=name, lookback=63, groups=group_map)
 
-    # Fallback: try basic momentum
     return MomentumModel(name=name, lookback=63)
 
 
@@ -79,7 +77,6 @@ def _allocator_from_leaderboard_row(row: pd.Series) -> dict[str, Any]:
     """Extract allocator config from leaderboard row."""
     weighting = row["weighting"]
     top_fraction = row.get("top_fraction", 0.33)
-    # Default to daily rebalancing; we will test D and M
     return {
         "weighting": weighting,
         "top_fraction": top_fraction,
@@ -95,11 +92,9 @@ def main() -> None:
     group_map = metadata.set_index("ticker")["country"].reindex(eligible_prices.columns)
     benchmark_returns = _equal_weight_benchmark(eligible_prices)
 
-    # Read the upgraded leaderboard
     upgraded_dir = Path("artifacts/asean/upgraded")
     leaderboard = pd.read_csv(upgraded_dir / "leaderboard.csv")
 
-    # Filter out benchmark rows, keep only top 15 models
     models_only = leaderboard[
         ~leaderboard["model_name"].isin(["asean_equal_weight_usd", "asean_equal_country_usd"])
     ].head(15)
@@ -123,14 +118,11 @@ def main() -> None:
         embargo=5,
     )
 
-    # Build candidate list from leaderboard rows
     results = []
     for _, row in models_only.iterrows():
         model = _model_from_leaderboard_row(row, group_map)
         base_config = _allocator_from_leaderboard_row(row)
 
-        # Test this model with its base config at 3 cost levels
-        # Plus a monthly rebalance variant for the top models
         configs = [base_config]
         if row["sharpe"] > 1.5:
             monthly_config = base_config.copy()
@@ -149,14 +141,13 @@ def main() -> None:
                         prices=eligible_prices,
                         group_map=group_map,
                         benchmark_returns=benchmark_returns,
-                        trial_sharpes=[],  # Will be filled in second pass
+                        trial_sharpes=[],
                     )
                     results.append(candidate)
                     print(f"  Evaluated: {model.name} | {config['weighting']}_top{int(config['top_fraction']*100)}_{config['rebalance_frequency']} | {cost_bps:.0f} bps | IR={candidate.net_ir:.3f} | Passed={candidate.passed_all}")
                 except Exception as e:
                     print(f"  ERROR: {model.name} | {config} | {cost_bps} bps: {e}")
 
-    # Second pass: recompute deflated Sharpe with full trial set
     trial_sharpes = [r.net_sharpe for r in results]
     final_results = []
     for result in results:
@@ -177,7 +168,7 @@ def main() -> None:
                 net_ir=result.net_ir,
                 net_sharpe=result.net_sharpe,
                 gross_sharpe=result.gross_sharpe,
-                deflated_sharpe=result.net_sharpe,  # Will be recomputed below
+                deflated_sharpe=result.net_sharpe,
                 annual_return=result.annual_return,
                 annual_volatility=result.annual_volatility,
                 max_drawdown=result.max_drawdown,
@@ -194,10 +185,8 @@ def main() -> None:
             )
         )
 
-    # Recompute DSR for all
     for i, result in enumerate(final_results):
         dsr = deflated_sharpe_ratio(result.net_returns, trial_sharpes=trial_sharpes, periods_per_year=252)
-        # Rebuild with corrected DSR
         constraints = optimizer._evaluate_constraints(
             result.net_returns,
             result.gross_returns,
@@ -246,7 +235,6 @@ def main() -> None:
     print(f"Total evaluations: {len(df)}")
     print()
 
-    # Top 15 by score
     print("--- TOP 15 BY COMPOSITE SCORE (Net IR - 10×Violation) ---")
     top15 = df.head(15)
     display_cols = [
@@ -257,7 +245,6 @@ def main() -> None:
     print(top15[[c for c in display_cols if c in top15.columns]].to_string(index=False))
     print()
 
-    # Feasible
     feasible = df[df["passed_all"] == True]
     print(f"--- FEASIBLE SOLUTIONS: {len(feasible)} of {len(df)} ---")
     if not feasible.empty:
@@ -266,7 +253,6 @@ def main() -> None:
         print("No feasible solutions found.")
     print()
 
-    # Best by cost
     print("--- BEST BY COST LEVEL ---")
     for cost in (0.0, 15.0, 50.0):
         subset = df[df["cost_bps"] == cost].head(1)
@@ -280,7 +266,6 @@ def main() -> None:
                   f"Passed={subset.iloc[0]['passed_all']}")
     print()
 
-    # Constraint breakdown
     print("--- CONSTRAINT BREAKDOWN ---")
     for c in ["max_drawdown", "turnover", "max_country_weight", "max_asset_weight", "cost_stress_2x", "deflated_sharpe"]:
         col = f"constraint_{c}_passed"
@@ -290,7 +275,6 @@ def main() -> None:
             print(f"  {c}: {passed}/{total} passed ({passed/total*100:.1f}%)")
     print()
 
-    # Best feasible by cost
     print("--- BEST FEASIBLE BY COST LEVEL ---")
     for cost in (0.0, 15.0, 50.0):
         subset = feasible[feasible["cost_bps"] == cost].head(1)

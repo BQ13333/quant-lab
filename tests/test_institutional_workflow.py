@@ -120,7 +120,7 @@ def audit_inputs(strategy: np.ndarray, factors: pd.DataFrame) -> MalaysiaAuditIn
 
 def run_audit(inputs: MalaysiaAuditInputs):
     return DeterministicMalaysiaInstitutionalAuditor(AuditSource(inputs)).audit(
-        candidate(), None, trial_id="T", universe=None, config=None  # type: ignore[arg-type]
+        candidate(), None, trial_id="T", universe=None, config=None
     )
 
 

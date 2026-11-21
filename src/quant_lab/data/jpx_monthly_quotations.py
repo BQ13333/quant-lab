@@ -561,7 +561,6 @@ def _invalidate_low_denominator_combined(
     result_status.loc[mask, "status"] = "failed"
     result_status.loc[mask, "error"] = "combined_parser_denominator_below_1000"
     if low_ids:
-        # quality_pass is reloaded from CSV. Pandas StringDtype rejects a bool.
         result_quality.loc[result_quality["request_id"].isin(low_ids), "quality_pass"] = _stored_pass_flag(
             result_quality["quality_pass"],
             False,

@@ -18,9 +18,6 @@ from quant_lab.models.baselines import (
 from quant_lab.regimes import VolTrendRegimeDetector
 
 
-# ---------------------------------------------------------------------------
-# Extended variants of existing baseline models
-# ---------------------------------------------------------------------------
 
 @dataclass
 class LowVolatilityModel126(LowVolatilityModel):
@@ -67,9 +64,6 @@ class MeanReversionModel63(MeanReversionModel):
     lookback: int = 63
 
 
-# ---------------------------------------------------------------------------
-# New zoo models
-# ---------------------------------------------------------------------------
 
 @dataclass
 class TimeSeriesMomentumModel(AlphaModel):
@@ -341,7 +335,6 @@ class RegimeConditionedModel(AlphaModel):
             lambda r: self.regime in r if pd.notna(r) else False
         )
         if not mask.any():
-            # No rows match the regime
             scores[:] = 0.0
         else:
             scores.loc[~mask] = 0.0

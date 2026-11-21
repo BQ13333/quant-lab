@@ -248,6 +248,4 @@ def test_injection_changes_only_the_added_tag(content: str) -> None:
     assert status == "inserted"
 
     stripped = re.sub(r"\s*\\tag\s*\{\s*A\.12\s*\}\s*", "", repaired, count=1)
-    # The insertion may consume whitespace immediately before the closer, so compare
-    # mathematical content rather than formatting whitespace.
     assert re.sub(r"\s+", "", stripped) == re.sub(r"\s+", "", content)

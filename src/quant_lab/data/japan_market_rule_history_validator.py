@@ -230,8 +230,6 @@ def _source_anchor_issues(sources: pd.DataFrame) -> list[str]:
 
 
 def _historical_source_hash_issues(sources: pd.DataFrame) -> list[str]:
-    # Several pre-2010 PDFs use embedded font maps that do not yield stable
-    # Japanese text. Pin the exact reviewed official files instead.
     observed = dict(zip(sources["source_id"], sources["sha256"]))
     return [
         f"immutable_official_source_hash_mismatch:{source_id}"

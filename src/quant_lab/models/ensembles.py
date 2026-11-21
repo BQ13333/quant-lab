@@ -90,12 +90,10 @@ class RegimeWeightedEnsembleModel(AlphaModel):
 
     def predict(self, prices: pd.DataFrame, start: int, end: int) -> SignalFrame:
         regimes = self.detector.describe(prices).iloc[start:end]
-        # Pre-compute all model signals
         model_signals: dict[str, pd.DataFrame] = {}
         for label, model in self.models.items():
             model_signals[label] = model.predict(prices, start, end).scores
 
-        # Build combined signal row by row based on regime
         combined = pd.DataFrame(
             0.0, index=regimes.index, columns=prices.columns
         )

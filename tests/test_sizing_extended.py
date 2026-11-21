@@ -69,7 +69,7 @@ def test_scores_to_no_trade_band_weights_respects_band(simple_scores, previous_w
         diff = (curr - prev).abs()
         for asset in w.columns:
             if diff[asset] <= band + 1e-9:
-                pass  # OK: within band
+                pass
 
 
 def test_downsample_rebalance_monthly():

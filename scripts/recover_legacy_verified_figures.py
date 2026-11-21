@@ -190,7 +190,6 @@ def reconstruct(elements: list[dict[str, object]], indices: tuple[int, ...], ses
 
     boxes = [element.get("bbox_2d") for element in selected]
     if any(not isinstance(box, list) or len(box) != 4 for box in boxes):
-        # Old responses without geometry: retain every crop in a vertical plate.
         width = max(image.width for image in images)
         height = sum(image.height for image in images)
         canvas = Image.new("RGBA", (width, height), "white")
@@ -200,7 +199,7 @@ def reconstruct(elements: list[dict[str, object]], indices: tuple[int, ...], ses
             y += image.height
         return canvas
 
-    typed_boxes = [tuple(int(value) for value in box) for box in boxes]  # type: ignore[arg-type]
+    typed_boxes = [tuple(int(value) for value in box) for box in boxes]
     left = min(box[0] for box in typed_boxes)
     top = min(box[1] for box in typed_boxes)
     right = max(box[2] for box in typed_boxes)

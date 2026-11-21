@@ -529,7 +529,7 @@ def probe_refinitiv_pit_fields(
             frame = _get_data_frame(ld, universe=sample_rics, fields=[field])
             row.update(_get_data_stats(frame, sample_count=len(sample_rics)))
             row["status"] = "validated" if row["non_null_values"] > 0 else "field_returned_empty"
-        except Exception as exc:  # pragma: no cover - depends on live vendor state
+        except Exception as exc:
             retryable = isinstance(
                 exc, RefinitivRetryableProviderError
             ) or is_refinitiv_retryable_provider_error(exc)
@@ -830,7 +830,7 @@ def probe_refinitiv_pit_historical_fields(
             )
             row.update(_history_stats(frame, sample_rics, start_date=start_date, end_date=end_date))
             row["status"] = _historical_probe_status(row)
-        except Exception as exc:  # pragma: no cover - live vendor path
+        except Exception as exc:
             retryable = isinstance(
                 exc, RefinitivRetryableProviderError
             ) or is_refinitiv_retryable_provider_error(exc)
@@ -1097,7 +1097,7 @@ def execute_refinitiv_pit_historical_plan(
                 "error": " | ".join(identifier_errors),
             }
             quality_rows.append(_quality_row_from_manifest(manifest_row))
-        except Exception as exc:  # pragma: no cover - live vendor path
+        except Exception as exc:
             retryable = is_refinitiv_retryable_provider_error(exc)
             error = RefinitivRetryableProviderError(str(exc)) if retryable else exc
             manifest_row = {
@@ -1552,7 +1552,7 @@ def probe_refinitiv_pit_route_candidates(
             else:
                 row["status"] = "unsupported_route"
                 row["error"] = f"unsupported route: {route}"
-        except Exception as exc:  # pragma: no cover - live vendor path
+        except Exception as exc:
             row["status"] = f"{route}_error"
             row["error"] = f"{type(exc).__name__}: {exc}"
         rows.append(row)
@@ -2124,7 +2124,7 @@ def _get_data_with_field_fallback(
         try:
             frame = _get_data_frame(ld, universe=universe, fields=[field])
             frames.append(frame)
-        except Exception as exc:  # pragma: no cover - live vendor fallback
+        except Exception as exc:
             errors.append({"field": str(field), "error": f"{type(exc).__name__}: {exc}"})
     if not frames:
         return pd.DataFrame(), errors

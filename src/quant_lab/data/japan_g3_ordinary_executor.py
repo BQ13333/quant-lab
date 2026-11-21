@@ -261,7 +261,7 @@ def execute_japan_g3_ordinary_plan(
         "earnings_plan.csv": "earnings",
     }
     lane = lane_by_name.get(plan_file.name)
-    if lane is None:  # pragma: no cover - guarded by admission validation
+    if lane is None:
         raise ValueError(f"unsupported ordinary G3 plan: {plan_file.name}")
     plan = pd.read_csv(plan_file, low_memory=False)
     artifact_dir = Path(artifact_root) / run_id
@@ -316,7 +316,7 @@ def execute_japan_g3_ordinary_plan(
                     "completed_at_utc": datetime.now(timezone.utc).isoformat(),
                     "error": "",
                 }
-            except Exception as exc:  # pragma: no cover - live vendor path
+            except Exception as exc:
                 retryable = isinstance(exc, RefinitivRetryableProviderError) or is_refinitiv_retryable_provider_error(exc)
                 result = {
                     "plan_row_id": row_id,

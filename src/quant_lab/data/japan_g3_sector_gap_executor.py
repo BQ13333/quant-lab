@@ -130,7 +130,7 @@ def execute_japan_g3_sector_gap_plan(
                     "error_type": "" if complete else "PartialCoverage",
                     "error": "" if complete else f"returned {len(returned)}/{len(rics)} RICs",
                 }
-            except Exception as exc:  # pragma: no cover - live provider path
+            except Exception as exc:
                 retryable = isinstance(exc, RefinitivRetryableProviderError) or is_refinitiv_retryable_provider_error(exc)
                 result = {
                     "plan_row_id": row_id,

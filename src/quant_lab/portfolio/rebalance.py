@@ -17,7 +17,6 @@ def weekly_rebalance(weights: pd.DataFrame, day_of_week: int = 4) -> pd.DataFram
 
     is_target = weights.index.dayofweek == day_of_week
     if not is_target.any():
-        # Fallback to the last trading day of each ISO week
         week_periods = weights.index.to_period("W")
         is_target = ~week_periods.duplicated(keep="last")
 
@@ -40,10 +39,8 @@ def monthly_rebalance(
     if day_of_month is not None:
         is_target = weights.index.day == day_of_month
         if not is_target.any():
-            # Fallback to last day of each month
             is_target = ~weights.index.to_period("M").duplicated(keep="last")
     else:
-        # Last day of each month
         is_target = ~weights.index.to_period("M").duplicated(keep="last")
 
     rebalanced = weights.loc[is_target]

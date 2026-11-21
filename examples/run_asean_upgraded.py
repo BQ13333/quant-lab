@@ -6,7 +6,6 @@ from quant_lab.research.asean_upgraded import run_asean_upgraded_research
 
 
 def main() -> None:
-    # Use the latest baseline artifact as data source
     artifact_dir = Path("artifacts/asean/ASEAN-20260704-232302")
     result = run_asean_upgraded_research(
         artifact_dir=artifact_dir,

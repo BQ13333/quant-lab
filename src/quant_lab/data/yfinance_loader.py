@@ -90,7 +90,7 @@ def download_price_history(
                     "period_used": period_used,
                 }
             )
-        except Exception as exc:  # pragma: no cover - network/provider dependent
+        except Exception as exc:
             failures[ticker] = f"{type(exc).__name__}: {exc}"
             coverage_rows.append(
                 {

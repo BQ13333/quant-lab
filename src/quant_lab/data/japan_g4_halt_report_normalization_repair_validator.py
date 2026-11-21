@@ -229,7 +229,7 @@ def _independent_source_validation(
         try:
             with pdfplumber.open(io.BytesIO(path.read_bytes())) as document:
                 pages = [page.extract_text(x_tolerance=2, y_tolerance=2) or "" for page in document.pages]
-        except Exception as exc:  # pragma: no cover - defensive boundary
+        except Exception as exc:
             _issue(issues, "independent_pdf_parse_failed", month, type(exc).__name__)
             continue
         for digest, _, spec_month, page, marker, disposition, *_ in _EXPECTED:

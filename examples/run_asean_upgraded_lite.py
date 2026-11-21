@@ -6,13 +6,12 @@ from quant_lab.research.asean_upgraded import run_asean_upgraded_research
 
 
 def main() -> None:
-    # Use the latest baseline artifact as data source
     artifact_dir = Path("artifacts/asean/ASEAN-20260704-232302")
     result = run_asean_upgraded_research(
         artifact_dir=artifact_dir,
         output_dir="artifacts/asean/upgraded",
         vault_root="vault",
-        cost_bps_grid=(0.0, 15.0, 50.0),  # Lite grid: baseline, 2x cost stress
+        cost_bps_grid=(0.0, 15.0, 50.0),
     )
 
     print("=" * 70)

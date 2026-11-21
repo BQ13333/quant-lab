@@ -62,7 +62,6 @@ def test_multiple_comparison_bonferroni():
     adj = multiple_comparison_adjustment(sharpes, method="bonferroni")
     assert len(adj) == 5
     assert (adj <= 1.0).all()
-    # Bonferroni should be >= raw p-values
     assert (adj >= 0.0).all()
 
 

@@ -162,9 +162,6 @@ def _write_agent_note(
     return str(path)
 
 
-# ---------------------------------------------------------------------------
-# Agent nodes
-# ---------------------------------------------------------------------------
 
 
 def research_director(state: QuantResearchState) -> dict[str, Any]:
@@ -412,9 +409,6 @@ def human_approval(state: QuantResearchState) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
-# Graph builder
-# ---------------------------------------------------------------------------
 
 class _FallbackGraph:
     """Sequential fallback when LangGraph is not installed."""

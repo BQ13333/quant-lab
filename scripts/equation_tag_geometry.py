@@ -231,9 +231,6 @@ def build_geometry_tag_plan(
         for item in formulas:
             x0, y0, x1, y1 = item["bbox"]
             horizontal_gap = label_left - x1
-            # A printed equation number sits outside the formula body.  This
-            # rejects parenthesized values such as f(0) that happen to occur
-            # near a formula's right edge, as well as cross-column matches.
             if horizontal_gap < -0.002 * target_width or horizontal_gap > 0.12 * target_width:
                 continue
             edge_distance = 0.0 if y0 <= label_y <= y1 else min(abs(label_y - y0), abs(label_y - y1))
@@ -256,9 +253,6 @@ def build_geometry_tag_plan(
                 }
             )
             continue
-        # The expanded 2% window above exists only to recognize a genuinely
-        # ambiguous between-formulas label.  Unique automatic assignments use
-        # a stricter 1% vertical edge distance.
         if matches[0][1] > 0.01 * target_height:
             decisions.append({**base, "status": "no_spatial_match"})
             continue

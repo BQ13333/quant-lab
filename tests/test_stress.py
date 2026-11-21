@@ -25,7 +25,6 @@ def test_cost_stress_monotonically_worse():
     weights = pd.DataFrame(np.ones((len(returns), 3)) / 3, index=returns.index, columns=["a", "b", "c"])
     df = cost_stress(returns, weights=weights)
     assert not df.empty
-    # Higher cost should reduce or equal net sharpe
     for i in range(1, len(df)):
         assert df.iloc[i]["net_sharpe"] <= df.iloc[i - 1]["net_sharpe"] + 1e-6
 
@@ -34,7 +33,6 @@ def test_cost_stress_without_weights():
     returns = _make_returns()
     df = cost_stress(returns, weights=None)
     assert not df.empty
-    # Without weights all rows should be identical
     assert df["net_sharpe"].nunique() == 1
 
 

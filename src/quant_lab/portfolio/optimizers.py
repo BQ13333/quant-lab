@@ -10,13 +10,10 @@ if TYPE_CHECKING:
     import scipy.cluster.hierarchy as sch
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _has_cvxpy() -> bool:
     try:
-        import cvxpy as cp  # noqa: F401
+        import cvxpy as cp
         return True
     except Exception:
         return False
@@ -40,8 +37,6 @@ def _enforce_max_weight(weights: pd.DataFrame, max_weight: float = 0.20) -> pd.D
         if len(positive) == 0:
             continue
         if len(positive) < 5:
-            # With fewer than 5 assets, equal weight is the only way to
-            # satisfy both sum-to-1 and a reasonable max-weight constraint.
             result.loc[idx, positive.index] = 1.0 / len(positive)
             continue
         effective_max = max_weight
@@ -49,8 +44,6 @@ def _enforce_max_weight(weights: pd.DataFrame, max_weight: float = 0.20) -> pd.D
         row_sum = capped.sum()
         if row_sum > 0:
             capped = capped / row_sum
-            # After normalizing, some weights might exceed effective_max again
-            # Iteratively cap and re-normalize until convergence
             for _ in range(10):
                 over = capped > effective_max
                 if not over.any():
@@ -67,7 +60,6 @@ def _enforce_max_weight(weights: pd.DataFrame, max_weight: float = 0.20) -> pd.D
 def _check_groups(groups: pd.Series | pd.DataFrame, columns: list) -> pd.Series:
     """Ensure groups is a Series aligned to columns."""
     if isinstance(groups, pd.DataFrame):
-        # Assume single-column DataFrame
         groups = groups.iloc[:, 0]
     aligned = groups.reindex(columns)
     return aligned
@@ -79,9 +71,6 @@ def _realized_vol(returns: pd.DataFrame, lookback: int) -> pd.DataFrame:
     return returns.rolling(lookback, min_periods=min_periods).std() * np.sqrt(252)
 
 
-# ---------------------------------------------------------------------------
-# 1. Equal weight
-# ---------------------------------------------------------------------------
 
 def equal_weight(scores: pd.DataFrame) -> pd.DataFrame:
     """Equal weight among all assets with non-null score on each date."""
@@ -91,9 +80,6 @@ def equal_weight(scores: pd.DataFrame) -> pd.DataFrame:
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 2. Equal country weight
-# ---------------------------------------------------------------------------
 
 def equal_country_weight(scores: pd.DataFrame, groups: pd.Series) -> pd.DataFrame:
     """Equal weight per country, then equal within each country."""
@@ -114,9 +100,6 @@ def equal_country_weight(scores: pd.DataFrame, groups: pd.Series) -> pd.DataFram
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 3. Inverse volatility
-# ---------------------------------------------------------------------------
 
 def inverse_volatility(
     scores: pd.DataFrame,
@@ -125,7 +108,6 @@ def inverse_volatility(
 ) -> pd.DataFrame:
     """Weight proportional to 1 / realized volatility."""
     vol = _realized_vol(returns, lookback)
-    # Align vol to scores index (vol is lagged, so we use as-of)
     vol_aligned = vol.reindex(scores.index, method="ffill")
     inv_vol = 1.0 / vol_aligned.replace(0, np.nan)
     mask = _valid_mask(scores)
@@ -135,9 +117,6 @@ def inverse_volatility(
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 4. Country inverse volatility
-# ---------------------------------------------------------------------------
 
 def country_inverse_volatility(
     scores: pd.DataFrame,
@@ -167,9 +146,6 @@ def country_inverse_volatility(
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 5. Risk parity (HRP)
-# ---------------------------------------------------------------------------
 
 def _get_quasi_diag(link: np.ndarray) -> list[int]:
     """Recover sorted leaf order from linkage matrix."""
@@ -226,7 +202,6 @@ def risk_parity_hrp(
         valid_cols = scores.loc[date].dropna().index.tolist()
         if not valid_cols:
             continue
-        # Use lookback window up to date
         end_loc = returns.index.get_loc(date)
         if end_loc < 5:
             continue
@@ -250,21 +225,16 @@ def risk_parity_hrp(
             sort_ix = sch.leaves_list(link)
             w = _get_rec_bisection(cov, sort_ix)
             w_series = pd.Series(w, index=cols)
-            # Re-normalize to sum to 1
             w_sum = w_series.sum()
             if w_sum > 0:
                 w_series = w_series / w_sum
             weights.loc[date, cols] = w_series.reindex(weights.columns).fillna(0.0)
         except Exception:
-            # Fallback to equal weight on this date
             n = len(cols)
             weights.loc[date, cols] = 1.0 / n
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 6. Max Sharpe with shrinkage
-# ---------------------------------------------------------------------------
 
 def _max_sharpe_cvxpy(
     mu: np.ndarray, cov: np.ndarray, long_only: bool = True
@@ -281,7 +251,6 @@ def _max_sharpe_cvxpy(
         constraints = [cp.sum(w) == 1]
     risk = cp.quad_form(w, cov)
     ret = mu @ w
-    # Maximize Sharpe via risk-adjusted return (risk free = 0)
     prob = cp.Problem(cp.Maximize(ret - 0.5 * risk), constraints)
     try:
         prob.solve(solver=cp.CLARABEL, verbose=False)
@@ -333,7 +302,6 @@ def max_sharpe_shrinkage(
         cols = sub_rets.columns.tolist()
         mu = sub_rets.mean().values * 252
         cov = sub_rets.cov().values
-        # Shrinkage to identity scaled by mean variance
         mean_var = np.trace(cov) / cov.shape[0]
         target = np.eye(cov.shape[0]) * mean_var
         cov = (1 - shrinkage) * cov + shrinkage * target
@@ -344,15 +312,11 @@ def max_sharpe_shrinkage(
         w_sum = w_series.sum()
         if w_sum > 0:
             w_series = w_series / w_sum
-        # Enforce max weight via helper
         w_series = _enforce_max_weight(w_series.to_frame().T).iloc[0]
         weights.loc[date, cols] = w_series.reindex(weights.columns).fillna(0.0)
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 7. Minimum variance
-# ---------------------------------------------------------------------------
 
 def _min_var_cvxpy(cov: np.ndarray) -> np.ndarray | None:
     try:
@@ -414,15 +378,11 @@ def minimum_variance(
         w_sum = w_series.sum()
         if w_sum > 0:
             w_series = w_series / w_sum
-        # Enforce max weight via helper
         w_series = _enforce_max_weight(w_series.to_frame().T).iloc[0]
         weights.loc[date, cols] = w_series.reindex(weights.columns).fillna(0.0)
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 8. Long-only top N
-# ---------------------------------------------------------------------------
 
 def long_only_top_n(scores: pd.DataFrame, top_n: int = 20) -> pd.DataFrame:
     """Select top N by score, equal weight among selected."""
@@ -433,9 +393,6 @@ def long_only_top_n(scores: pd.DataFrame, top_n: int = 20) -> pd.DataFrame:
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 9. Country neutral long only
-# ---------------------------------------------------------------------------
 
 def country_neutral_long_only(
     scores: pd.DataFrame, groups: pd.Series, top_fraction: float = 0.33
@@ -446,9 +403,6 @@ def country_neutral_long_only(
     return scores_to_group_neutral_long_only_weights(scores, groups, top_fraction=top_fraction)
 
 
-# ---------------------------------------------------------------------------
-# 10. Dollar neutral
-# ---------------------------------------------------------------------------
 
 def dollar_neutral(scores: pd.DataFrame, gross_exposure: float = 1.0) -> pd.DataFrame:
     """Dollar-neutral weights from scores."""
@@ -457,9 +411,6 @@ def dollar_neutral(scores: pd.DataFrame, gross_exposure: float = 1.0) -> pd.Data
     return scores_to_weights(scores, gross_exposure=gross_exposure)
 
 
-# ---------------------------------------------------------------------------
-# 11. Country neutral dollar neutral
-# ---------------------------------------------------------------------------
 
 def country_neutral_dollar_neutral(
     scores: pd.DataFrame, groups: pd.Series, gross_exposure: float = 1.0
@@ -470,9 +421,6 @@ def country_neutral_dollar_neutral(
     return scores_to_group_neutral_weights(scores, groups, gross_exposure=gross_exposure)
 
 
-# ---------------------------------------------------------------------------
-# 12. Turnover constrained optimizer
-# ---------------------------------------------------------------------------
 
 def turnover_constrained_optimizer(
     scores: pd.DataFrame,
@@ -481,7 +429,6 @@ def turnover_constrained_optimizer(
     use_cvxpy: bool = True,
 ) -> pd.DataFrame:
     """Optimize new weights subject to turnover <= max_turnover from previous."""
-    # Start with equal-weight target for simplicity (or could use scores as target)
     target = equal_weight(scores)
     weights = pd.DataFrame(0.0, index=scores.index, columns=scores.columns)
 
@@ -505,7 +452,6 @@ def turnover_constrained_optimizer(
                 w = cp.Variable(n)
                 turnover = cp.norm(w - prev_vec, 1)
                 constraints = [cp.sum(w) == 1, w >= 0, turnover <= max_turnover]
-                # Minimize distance to target
                 obj = cp.Minimize(cp.sum_squares(w - tgt_vec))
                 prob = cp.Problem(obj, constraints)
                 try:
@@ -522,7 +468,6 @@ def turnover_constrained_optimizer(
             w_vec = None
 
         if w_vec is None:
-            # Fallback: project target onto turnover ball using greedy clipping
             diff = tgt_vec - prev_vec
             l1 = np.abs(diff).sum()
             if l1 <= max_turnover:
@@ -530,23 +475,18 @@ def turnover_constrained_optimizer(
             else:
                 scale = max_turnover / l1 if l1 > 0 else 0.0
                 w_vec = prev_vec + diff * scale
-                # Ensure non-negative and sum-to-1 after projection
                 w_vec = np.maximum(w_vec, 0.0)
                 s = w_vec.sum()
                 if s > 0:
                     w_vec = w_vec / s
 
         w_series = pd.Series(w_vec, index=cols).reindex(scores.columns).fillna(0.0)
-        # Enforce max weight
         w_series = w_series.clip(upper=0.20)
         w_series = w_series / w_series.sum() if w_series.sum() > 0 else w_series
         weights.loc[date] = w_series
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 13. No-trade band optimizer
-# ---------------------------------------------------------------------------
 
 def no_trade_band_optimizer(
     scores: pd.DataFrame,
@@ -561,12 +501,9 @@ def no_trade_band_optimizer(
         prev = previous_weights.loc[date] if date in previous_weights.index else pd.Series(0.0, index=scores.columns)
         tgt = target.loc[date].fillna(0.0)
         diff = (tgt - prev).abs()
-        # Rebalance only assets where diff > band
         rebalance = diff > band
-        # For assets not rebalancing, keep previous; for rebalancing, use target
         w = prev.copy()
         w[rebalance] = tgt[rebalance]
-        # Normalize to sum to 1 (long-only assumption)
         w = w.clip(lower=0.0)
         s = w.sum()
         if s > 0:
@@ -575,9 +512,6 @@ def no_trade_band_optimizer(
     return weights
 
 
-# ---------------------------------------------------------------------------
-# 14. Rebalance schedule
-# ---------------------------------------------------------------------------
 
 def rebalance_schedule(weights: pd.DataFrame, frequency: str = "M") -> pd.DataFrame:
     """Downsample daily weights to rebalance frequency, forward-fill between."""
@@ -588,7 +522,6 @@ def rebalance_schedule(weights: pd.DataFrame, frequency: str = "M") -> pd.DataFr
         weights.index = pd.to_datetime(weights.index)
     freq_map = {"W": "W-FRI", "M": "ME", "Q": "QE", "Y": "YE"}
     freq = freq_map.get(frequency, frequency)
-    # Resample to end of period, forward-fill, reindex to original
     sampled = weights.resample(freq).last().ffill()
     result = sampled.reindex(weights.index, method="ffill")
     return result

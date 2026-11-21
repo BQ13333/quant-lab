@@ -98,7 +98,7 @@ def main() -> None:
         train_size=504,
         test_size=63,
         embargo=5,
-        max_leverage=1.5,  # KEY: lower leverage to respect country concentration
+        max_leverage=1.5,
     )
 
     results = []
@@ -117,7 +117,6 @@ def main() -> None:
                 except Exception as e:
                     print(f"  ERROR: {model.name} | {freq} | {cost_bps}bps: {e}")
 
-    # Second pass: compute DSR with full trial set
     trial_sharpes = [r.net_sharpe for r in results]
     from quant_lab.optimization.net_ir_optimizer import OptimizedCandidateResult
     final_results = []
@@ -148,7 +147,6 @@ def main() -> None:
     print(f"Total evaluations: {len(df)}")
     print()
 
-    # Top 15
     print("--- TOP 15 BY COMPOSITE SCORE ---")
     top15 = df.head(15)
     cols = ["model_name","allocator_name","cost_bps","net_ir","net_sharpe",
@@ -156,7 +154,6 @@ def main() -> None:
     print(top15[[c for c in cols if c in top15.columns]].to_string(index=False))
     print()
 
-    # Feasible
     feasible = df[df["passed_all"] == True]
     print(f"--- FEASIBLE SOLUTIONS: {len(feasible)} of {len(df)} ---")
     if not feasible.empty:
@@ -165,7 +162,6 @@ def main() -> None:
         print("No feasible solutions found.")
     print()
 
-    # Best by cost
     print("--- BEST BY COST LEVEL ---")
     for cost in (0.0, 15.0, 50.0):
         subset = df[df["cost_bps"] == cost].head(1)
@@ -177,7 +173,6 @@ def main() -> None:
                   f"Passed={subset.iloc[0]['passed_all']}")
     print()
 
-    # Best feasible by cost
     print("--- BEST FEASIBLE BY COST LEVEL ---")
     for cost in (0.0, 15.0, 50.0):
         subset = feasible[feasible["cost_bps"] == cost].head(1)
@@ -189,7 +184,6 @@ def main() -> None:
             print(f"  {cost:.0f} bps: No feasible solution")
     print()
 
-    # Constraint breakdown
     print("--- CONSTRAINT BREAKDOWN ---")
     for c in ["max_drawdown","turnover","max_country_weight","max_asset_weight","cost_stress_2x","deflated_sharpe"]:
         col = f"constraint_{c}_passed"

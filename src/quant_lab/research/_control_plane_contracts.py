@@ -95,8 +95,6 @@ class GateStatus(str, Enum):
     INCONCLUSIVE = "inconclusive"
 
 
-# These IDs are intentionally stable. They represent every deterministic file
-# required by the agreed validation policy; descriptions belong in supporting docs.
 REQUIRED_VALIDATION_GATES = (
     "point_in_time_data_audit",
     "purged_embargoed_walk_forward_splits",

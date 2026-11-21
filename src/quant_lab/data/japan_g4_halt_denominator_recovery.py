@@ -200,7 +200,7 @@ def run_japan_g4_halt_denominator_recovery(
             try:
                 inspected = inspect_lifecycle_text(extract(body), month)
                 validation = "exact_month_valid" if inspected["exact_month"] else "month_heading_invalid"
-            except Exception as exc:  # Keep corrupt/unparseable sources visible and uncovered.
+            except Exception as exc:
                 validation = f"parse_error:{type(exc).__name__}"
         if validation == "exact_month_valid":
             inspections[month] = {**inspected, "url": url, "sha256": digest, "local_path": str(local.resolve())}

@@ -13,7 +13,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import integrate_verified_waves_into_agent_library as integration  # noqa: E402
+import integrate_verified_waves_into_agent_library as integration
 
 
 def write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:

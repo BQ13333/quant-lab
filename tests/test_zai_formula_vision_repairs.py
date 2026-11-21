@@ -267,7 +267,6 @@ $$
         if path.is_file() and path.suffix in {".csv", ".json", ".md"}:
             assert secret not in path.read_text(encoding="utf-8")
 
-    # Resolved pages are resumable: a normal rerun must neither request a key nor call the API.
     monkeypatch.setattr(
         vision.ocr,
         "env_api_key",

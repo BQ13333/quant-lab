@@ -257,8 +257,6 @@ def main() -> None:
                 }
             )
 
-    # Replace only prior materializations of these acquisition waves; preserve the
-    # original 279-paper library and all unrelated user changes.
     merged_corpus = [row for row in corpus_rows if row["document_id"] not in wave_ids] + new_rows
     merged_corpus.sort(key=lambda row: row["document_id"])
     active_corpus = [row for row in merged_corpus if row["retrieval_status"].startswith("active")]

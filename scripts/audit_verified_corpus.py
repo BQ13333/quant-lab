@@ -287,7 +287,7 @@ def audit_corpus(
                 _add_error(errors, document_errors, f"queue/plan SHA mismatch: {document_id}", document_id)
         try:
             actual_pages = page_counter(path)
-        except Exception as exc:  # PDF readers expose several format-specific exceptions.
+        except Exception as exc:
             _add_error(errors, document_errors, f"source page-count failure: {document_id}: {exc}", document_id)
         else:
             if actual_pages != parse_int(plan.get("page_count")):

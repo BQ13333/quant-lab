@@ -9,9 +9,6 @@ import pytest
 from quant_lab.portfolio import optimizers
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def simple_scores() -> pd.DataFrame:
@@ -55,23 +52,16 @@ def previous_weights() -> pd.DataFrame:
     )
 
 
-# ---------------------------------------------------------------------------
-# 1. Equal weight
-# ---------------------------------------------------------------------------
 
 def test_equal_weight_sums_to_one(simple_scores):
     w = optimizers.equal_weight(simple_scores)
     row_sums = w.sum(axis=1)
-    # On rows with at least one valid score, sum should be 1
     valid_counts = simple_scores.notna().sum(axis=1)
     assert (row_sums[valid_counts > 0] - 1.0).abs().max() < 1e-10
     assert w.shape == simple_scores.shape
     assert w.isna().sum().sum() == 0
 
 
-# ---------------------------------------------------------------------------
-# 2. Equal country weight
-# ---------------------------------------------------------------------------
 
 def test_equal_country_weight_sums_to_one(simple_scores, groups):
     w = optimizers.equal_country_weight(simple_scores, groups)
@@ -83,7 +73,6 @@ def test_equal_country_weight_sums_to_one(simple_scores, groups):
 
 def test_equal_country_weight_balances_groups(simple_scores, groups):
     w = optimizers.equal_country_weight(simple_scores, groups)
-    # On dates with assets in both groups, each group should have equal gross
     for date in w.index:
         group_x = w.loc[[date], ["A", "B"]].sum(axis=1).iloc[0]
         group_y = w.loc[[date], ["C", "D"]].sum(axis=1).iloc[0]
@@ -91,9 +80,6 @@ def test_equal_country_weight_balances_groups(simple_scores, groups):
             assert abs(group_x - group_y) < 1e-10
 
 
-# ---------------------------------------------------------------------------
-# 3. Inverse volatility
-# ---------------------------------------------------------------------------
 
 def test_inverse_volatility_sums_to_one(simple_scores, returns_df):
     w = optimizers.inverse_volatility(simple_scores, returns_df)
@@ -103,9 +89,6 @@ def test_inverse_volatility_sums_to_one(simple_scores, returns_df):
     assert w.isna().sum().sum() == 0
 
 
-# ---------------------------------------------------------------------------
-# 4. Country inverse volatility
-# ---------------------------------------------------------------------------
 
 def test_country_inverse_volatility_sums_to_one(simple_scores, returns_df, groups):
     w = optimizers.country_inverse_volatility(simple_scores, returns_df, groups)
@@ -124,14 +107,10 @@ def test_country_inverse_volatility_balances_groups(simple_scores, returns_df, g
             assert abs(group_x - group_y) < 1e-10
 
 
-# ---------------------------------------------------------------------------
-# 5. Risk parity HRP
-# ---------------------------------------------------------------------------
 
 def test_risk_parity_hrp_sums_to_one(simple_scores, returns_df):
     w = optimizers.risk_parity_hrp(simple_scores, returns_df)
     row_sums = w.sum(axis=1)
-    # Some early dates may not have enough history, so only check valid rows
     valid = row_sums > 0
     assert (row_sums[valid] - 1.0).abs().max() < 1e-6
     assert w.isna().sum().sum() == 0
@@ -151,9 +130,6 @@ def test_risk_parity_hrp_uses_condensed_distance(simple_scores, returns_df):
     assert not any(isinstance(item.message, sch.ClusterWarning) for item in caught)
 
 
-# ---------------------------------------------------------------------------
-# 6. Max Sharpe shrinkage
-# ---------------------------------------------------------------------------
 
 def test_max_sharpe_shrinkage_sums_to_one(simple_scores, returns_df):
     w = optimizers.max_sharpe_shrinkage(simple_scores, returns_df)
@@ -171,13 +147,9 @@ def test_max_sharpe_shrinkage_max_weight(simple_scores, returns_df):
         if len(positive) >= 5:
             assert positive.max() <= 0.20 + 1e-9
         else:
-            # With fewer than 5 assets, equal weight is the only feasible max
             assert positive.max() <= 1.0 / len(positive) + 1e-9
 
 
-# ---------------------------------------------------------------------------
-# 7. Minimum variance
-# ---------------------------------------------------------------------------
 
 def test_minimum_variance_sums_to_one(simple_scores, returns_df):
     w = optimizers.minimum_variance(simple_scores, returns_df)
@@ -198,9 +170,6 @@ def test_minimum_variance_max_weight(simple_scores, returns_df):
             assert positive.max() <= 1.0 / len(positive) + 1e-9
 
 
-# ---------------------------------------------------------------------------
-# 8. Long-only top N
-# ---------------------------------------------------------------------------
 
 def test_long_only_top_n_selects_n(simple_scores):
     w = optimizers.long_only_top_n(simple_scores, top_n=2)
@@ -214,9 +183,6 @@ def test_long_only_top_n_with_nans(simple_scores):
     assert w.isna().sum().sum() == 0
 
 
-# ---------------------------------------------------------------------------
-# 9. Country neutral long only
-# ---------------------------------------------------------------------------
 
 def test_country_neutral_long_only_groups(simple_scores, groups):
     w = optimizers.country_neutral_long_only(simple_scores, groups, top_fraction=0.5)
@@ -227,9 +193,6 @@ def test_country_neutral_long_only_groups(simple_scores, groups):
             assert abs(group_x - group_y) < 1e-10
 
 
-# ---------------------------------------------------------------------------
-# 10. Dollar neutral
-# ---------------------------------------------------------------------------
 
 def test_dollar_neutral_sums_to_zero(simple_scores):
     w = optimizers.dollar_neutral(simple_scores)
@@ -238,9 +201,6 @@ def test_dollar_neutral_sums_to_zero(simple_scores):
     assert (row_sums[valid].abs() < 1e-10).all()
 
 
-# ---------------------------------------------------------------------------
-# 11. Country neutral dollar neutral
-# ---------------------------------------------------------------------------
 
 def test_country_neutral_dollar_neutral_groups(simple_scores, groups):
     w = optimizers.country_neutral_dollar_neutral(simple_scores, groups)
@@ -251,9 +211,6 @@ def test_country_neutral_dollar_neutral_groups(simple_scores, groups):
             assert abs(group_x - group_y) < 1e-10
 
 
-# ---------------------------------------------------------------------------
-# 12. Turnover constrained optimizer
-# ---------------------------------------------------------------------------
 
 def test_turnover_constrained_respects_limit(simple_scores, previous_weights):
     w = optimizers.turnover_constrained_optimizer(simple_scores, previous_weights, max_turnover=0.5)
@@ -270,9 +227,6 @@ def test_turnover_constrained_sums_to_one(simple_scores, previous_weights):
     assert (row_sums - 1.0).abs().max() < 1e-9
 
 
-# ---------------------------------------------------------------------------
-# 13. No-trade band optimizer
-# ---------------------------------------------------------------------------
 
 def test_no_trade_band_respects_band(simple_scores, previous_weights):
     band = 0.05
@@ -281,11 +235,8 @@ def test_no_trade_band_respects_band(simple_scores, previous_weights):
         prev = previous_weights.loc[date]
         curr = w.loc[date]
         diff = (curr - prev).abs()
-        # Any asset with diff > band should have been set to target; otherwise prev kept
-        # Overall, weights should be either prev or target for each asset
         for asset in w.columns:
             if diff[asset] <= band + 1e-9:
-                # Either prev or target, but since we normalize, allow small deviation
                 pass
 
 
@@ -295,9 +246,6 @@ def test_no_trade_band_sums_to_one(simple_scores, previous_weights):
     assert (row_sums - 1.0).abs().max() < 1e-9
 
 
-# ---------------------------------------------------------------------------
-# 14. Rebalance schedule
-# ---------------------------------------------------------------------------
 
 def test_rebalance_schedule_monthly():
     dates = pd.date_range("2024-01-01", periods=30, freq="D")
@@ -305,8 +253,6 @@ def test_rebalance_schedule_monthly():
     weights = weights.div(weights.sum(axis=1), axis=0)
     w_monthly = optimizers.rebalance_schedule(weights, frequency="M")
     assert w_monthly.shape == weights.shape
-    # After resampling, weights should be piecewise constant between month-ends
-    # Check that on the last day of each month, weight matches original
     month_ends = weights.resample("ME").last().index
     for me in month_ends:
         if me in weights.index:

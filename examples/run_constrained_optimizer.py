@@ -26,32 +26,24 @@ def main() -> None:
     group_map = metadata.set_index("ticker")["country"].reindex(eligible_prices.columns)
     benchmark_returns = _equal_weight_benchmark(eligible_prices)
 
-    # Pre-select top-performing models from the upgraded run
     models = [
-        # Low volatility family (best performers)
         LowVolatilityModel(name="lowvol_63", lookback=63),
         LowVolatilityModel(name="lowvol_126", lookback=126),
         LowVolatilityModel(name="lowvol_252", lookback=252),
-        # Momentum family
         MomentumModel(name="mom_63", lookback=63),
         MomentumModel(name="mom_126", lookback=126),
         MomentumModel(name="mom_252", lookback=252),
-        # Volatility-adjusted momentum
         VolatilityAdjustedMomentumModel(name="vam_63", lookback=63, volatility_lookback=63),
         VolatilityAdjustedMomentumModel(name="vam_126", lookback=126, volatility_lookback=63),
-        # Time-series momentum
         TimeSeriesMomentumModel(name="tsmom_63", lookback=63),
-        # Trend + low vol ensemble
         TrendLowVolEnsembleModel(
             name="trend_lowvol_ensemble",
             trend_model=MomentumModel(name="trend_mom_63", lookback=63),
             lowvol_model=LowVolatilityModel(name="trend_lowvol_63", lookback=63),
         ),
-        # Breakout
         BreakoutModel(name="breakout_20", lookback=20),
     ]
 
-    # Add group-aware models
     models.extend([
         CountryRelativeMomentumModel(name="ctry_rel_mom_63", lookback=63, groups=group_map),
         WithinCountryRankingModel(name="within_ctry_63", lookback=63, groups=group_map),
@@ -114,7 +106,6 @@ def main() -> None:
     print(f"Evaluations completed: {len(df)}")
     print()
 
-    # Top 20 by net IR
     print("--- TOP 20 BY NET INFORMATION RATIO ---")
     top20 = df.head(20)
     display_cols = [
@@ -125,7 +116,6 @@ def main() -> None:
     print(top20[[c for c in display_cols if c in top20.columns]].to_string(index=False))
     print()
 
-    # Feasible solutions only
     feasible = df[df["passed_all"] == True]
     print(f"--- FEASIBLE SOLUTIONS: {len(feasible)} of {len(df)} ---")
     if not feasible.empty:
@@ -134,7 +124,6 @@ def main() -> None:
         print("No feasible solutions found.")
     print()
 
-    # Best by cost level
     print("--- BEST BY COST LEVEL ---")
     for cost in cost_bps_grid:
         subset = df[df["cost_bps"] == cost].head(1)
@@ -146,7 +135,6 @@ def main() -> None:
                   f"Passed={subset.iloc[0]['passed_all']}")
     print()
 
-    # Constraint breakdown
     print("--- CONSTRAINT BREAKDOWN ---")
     for c in ["max_drawdown", "turnover", "max_country_weight", "max_asset_weight", "cost_stress_2x", "deflated_sharpe"]:
         col = f"constraint_{c}_passed"
@@ -156,7 +144,6 @@ def main() -> None:
             print(f"  {c}: {passed}/{total} passed ({passed/total*100:.1f}%)")
     print()
 
-    # Compare to equal-weight benchmark
     print("--- BENCHMARK COMPARISON ---")
     print(f"Equal-weight Sharpe: {benchmark_returns.mean() * 252 / (benchmark_returns.std(ddof=1) * 252**0.5):.3f}")
     print(f"Equal-weight Ann Return: {benchmark_returns.mean() * 252:.1%}")

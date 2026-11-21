@@ -35,7 +35,6 @@ def test_equal_weight_ensemble_averaging():
     assert sf.metadata["family"] == "equal_weight_ensemble"
     assert not sf.scores.empty
 
-    # Verify that the ensemble score is the average of the two models
     sf1 = models[0].predict(prices, start=250, end=300)
     sf2 = models[1].predict(prices, start=250, end=300)
     expected = (sf1.scores + sf2.scores) / 2.0
@@ -94,7 +93,6 @@ def test_regime_weighted_ensemble():
     assert sf.metadata["family"] == "regime_weighted_ensemble"
     assert not sf.scores.empty
 
-    # Verify that for each row the correct model signal was selected
     regimes = detector.describe(prices).iloc[250:300]
     sf_mom = models["trend_up"].predict(prices, start=250, end=300)
     sf_low = models["trend_down"].predict(prices, start=250, end=300)

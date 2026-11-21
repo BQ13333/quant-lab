@@ -676,7 +676,7 @@ def label_one(cfg: dict[str, Any], key: str, row: sqlite3.Row) -> tuple[str, dic
             if label.get("data_classification") != "non_lseg_research":
                 raise RuntimeError("Unexpected data classification")
             return row["doc_id"], label
-        except Exception as exc:  # SDK errors expose varying status attributes.
+        except Exception as exc:
             last_error = exc
             status = getattr(exc, "status_code", None)
             if attempt == 4 or status not in {429, 500, 502, 503, 504}:

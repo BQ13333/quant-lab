@@ -113,7 +113,6 @@ def build_default_pit_factor_matrices(
         "pit_ibes__eps_yield": eps_estimate.div(price_matrix.replace(0.0, np.nan)),
         "pit_ibes__eps_revision_63d": _revision_proxy(eps_estimate, revision_window),
         "pit_ibes__revenue_revision_63d": _revision_proxy(revenue_estimate, revision_window),
-        # IBES recommendation scales are generally lower-is-better; invert for a positive score.
         "pit_ibes__recommendation_score": -recommendation,
         "pit_events__earnings_recency_30d": _event_recency_score(earnings_release, event_window),
     }

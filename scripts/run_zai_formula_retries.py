@@ -28,8 +28,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_ocr_pipeline as ocr  # noqa: E402
-import equation_tag_geometry as tag_geometry  # noqa: E402
+import run_zai_ocr_pipeline as ocr
+import equation_tag_geometry as tag_geometry
 
 
 LEDGER_FIELDS = [
@@ -662,7 +662,7 @@ def assemble_verified_documents(
         pdf_handle: Any = None
         try:
             pdf_handle = ocr.pdfplumber.open(document.input_path)
-        except Exception:  # noqa: BLE001 - absence becomes explicit residual QA.
+        except Exception:
             pdf_handle = None
         try:
             for chunk_row in chunks_by_doc.get(document_id, []):
@@ -726,8 +726,6 @@ def assemble_verified_documents(
             if pdf_handle is not None:
                 pdf_handle.close()
 
-        # Preserve intentionally blank (or footer-only) source pages as
-        # explicit page sections instead of treating them as extraction loss.
         for page_number in range(1, document.page_count + 1):
             if page_markdown.get(page_number, "").strip():
                 continue
@@ -833,9 +831,6 @@ def assemble_verified_documents(
                 "warning_pages": ";".join(map(str, warning_pages)),
             }
         )
-    # PDF text extractors can emit the same equation-label word twice at an
-    # identical bounding box (for example when a font has duplicate text
-    # layers).  Keep one provenance record for that physical source label.
     deduped_tag_qa_rows: list[dict[str, Any]] = []
     seen_tag_sources: set[tuple[str, int, str, str, str]] = set()
     for row in tag_qa_rows:

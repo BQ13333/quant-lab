@@ -48,7 +48,6 @@ def liquidity_filter(
 
     Returns a boolean Series indexed by ticker.
     """
-    # ---- lagged data (no lookahead) ----------------------------------------
     prices_lag = prices.shift(1)
     volumes_lag = volumes.shift(1)
 
@@ -59,24 +58,18 @@ def liquidity_filter(
         else metadata
     )
 
-    # ---- ADV (lagged) ------------------------------------------------------
     adv_df = (prices_lag * volumes_lag).rolling(window=63, min_periods=1).mean()
     usd_adv = adv_df.iloc[-1]
 
-    # ---- traded days ---------------------------------------------------------
     traded_days = volumes_lag.notna().sum()
 
-    # ---- missing ratio -------------------------------------------------------
     missing_ratio = prices_lag.isna().mean()
 
-    # ---- stale days ----------------------------------------------------------
     stale = prices_lag == prices_lag.shift(1)
     stale_days = stale.sum()
 
-    # ---- last price -----------------------------------------------------------
     last_price = prices_lag.iloc[-1]
 
-    # ---- apply filters -------------------------------------------------------
     mask = pd.Series(index=tickers, dtype=bool)
     for ticker in tickers:
         adv_val = usd_adv.get(ticker, np.nan)

@@ -19,7 +19,7 @@ def _synthetic_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         {
             "A": 100 + np.random.randn(100).cumsum(),
             "B": 50 + np.random.randn(100).cumsum(),
-            "C": 0.5 + np.random.randn(100).cumsum() * 0.01,  # cheap stock
+            "C": 0.5 + np.random.randn(100).cumsum() * 0.01,
         },
         index=dates,
     )
@@ -55,7 +55,6 @@ def test_rolling_adv():
     assert "usd_adv" in adv.columns
     assert adv.index.tolist() == ["A", "B", "C"]
 
-    # Manual check for ticker A
     expected = (prices["A"] * volumes["A"]).rolling(20).mean().iloc[-1]
     assert adv.loc["A", "local_adv"] == pytest.approx(expected, rel=1e-5)
 
@@ -87,7 +86,6 @@ def test_liquidity_filter_mask():
     assert mask.dtype == bool
     assert mask.index.tolist() == ["A", "B", "C"]
 
-    # C is cheap (price ~0.5) so it should fail min_price
     assert mask["C"] == False
 
 
@@ -106,8 +104,6 @@ def test_liquidity_filter_no_lookahead():
     )
 
     mask = liquidity_filter(prices, volumes, metadata)
-    # With shift(1), the last price used is row 48 (price ~100)
-    # The ADV is based on rows 1-48 (shifted), so it should be high
     assert mask["X"] == True
 
 

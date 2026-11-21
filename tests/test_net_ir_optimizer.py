@@ -76,9 +76,8 @@ def test_optimizer_respects_drawdown_constraint():
         {"weighting": "long_only", "top_fraction": 0.33, "rebalance_frequency": "D"},
     ]
 
-    # Very tight drawdown limit should cause violations
     opt = NetIRConstrainedOptimizer(
-        drawdown_limit=-0.01,  # Impossibly tight
+        drawdown_limit=-0.01,
         max_turnover=5.0,
         train_size=100,
         test_size=30,
@@ -93,7 +92,6 @@ def test_optimizer_respects_drawdown_constraint():
     )
 
     assert not df.empty
-    # All should fail the drawdown constraint
     assert not df["constraint_max_drawdown_passed"].any()
 
 
@@ -123,7 +121,6 @@ def test_optimizer_score_penalizes_violations():
     )
 
     assert not df.empty
-    # 0 bps should have higher score than 15 bps (same model, lower costs)
     scores_0 = df.loc[df["cost_bps"] == 0.0, "score"].iloc[0]
     scores_15 = df.loc[df["cost_bps"] == 15.0, "score"].iloc[0]
     assert scores_0 >= scores_15

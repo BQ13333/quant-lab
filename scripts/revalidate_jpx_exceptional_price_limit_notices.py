@@ -26,8 +26,6 @@ CATEGORIES = (
     "irreducible_ambiguity",
 )
 
-# This inventory is deliberately keyed to the immutable retained corpus. Revalidation fails
-# closed if the baseline failure set changes, so a new anomaly cannot inherit an old decision.
 STRICT_FAILURE_CLASSIFICATIONS: dict[tuple[str, str], dict[str, str]] = {
     ("JPX-EPL-00074", "3810"): {
         "category": "official_source_typo",

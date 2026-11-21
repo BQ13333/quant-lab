@@ -373,7 +373,7 @@ def _fetch_pending_trade_halt(
                 observed_at_utc=last_observed_at,
             )
             return _PendingFetch(payload, parsed, attempt, last_observed_at, None)
-        except Exception as exc:  # retry malformed responses and transient transport failures
+        except Exception as exc:
             last_error = exc
             if attempt <= retries and sleep_seconds > 0:
                 sleeper(sleep_seconds)

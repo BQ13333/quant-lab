@@ -38,9 +38,6 @@ def prev_weights() -> pd.Series:
     )
 
 
-# ---------------------------------------------------------------------------
-# cvxpy_max_sharpe
-# ---------------------------------------------------------------------------
 
 
 def test_max_sharpe_weights_sum_to_one(expected_returns: pd.Series, cov_matrix: pd.DataFrame):
@@ -62,9 +59,6 @@ def test_max_sharpe_respects_max_weight(expected_returns: pd.Series, cov_matrix:
         assert positive.max() <= 0.20 + 1e-6
 
 
-# ---------------------------------------------------------------------------
-# cvxpy_min_variance
-# ---------------------------------------------------------------------------
 
 
 def test_min_variance_weights_sum_to_one(expected_returns: pd.Series, cov_matrix: pd.DataFrame):
@@ -84,9 +78,6 @@ def test_min_variance_respects_max_weight(expected_returns: pd.Series, cov_matri
         assert positive.max() <= 0.20 + 1e-6
 
 
-# ---------------------------------------------------------------------------
-# cvxpy_turnover_constrained
-# ---------------------------------------------------------------------------
 
 
 def test_turnover_constrained_respects_limit(
@@ -119,9 +110,6 @@ def test_turnover_constrained_long_only(
     assert (w >= -1e-9).all()
 
 
-# ---------------------------------------------------------------------------
-# cvxpy_risk_parity
-# ---------------------------------------------------------------------------
 
 
 def test_risk_parity_weights_sum_to_one(expected_returns: pd.Series, cov_matrix: pd.DataFrame):
@@ -134,9 +122,6 @@ def test_risk_parity_long_only(expected_returns: pd.Series, cov_matrix: pd.DataF
     assert (w >= -1e-9).all()
 
 
-# ---------------------------------------------------------------------------
-# Fallback determinism
-# ---------------------------------------------------------------------------
 
 
 def test_max_sharpe_deterministic(expected_returns: pd.Series, cov_matrix: pd.DataFrame):
@@ -151,9 +136,6 @@ def test_min_variance_deterministic(expected_returns: pd.Series, cov_matrix: pd.
     pd.testing.assert_series_equal(w1, w2)
 
 
-# ---------------------------------------------------------------------------
-# Missing cvxpy graceful degradation
-# ---------------------------------------------------------------------------
 
 
 def test_module_imports_without_cvxpy():

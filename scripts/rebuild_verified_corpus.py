@@ -11,8 +11,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_formula_retries as retry  # noqa: E402
-import run_zai_ocr_pipeline as ocr  # noqa: E402
+import run_zai_formula_retries as retry
+import run_zai_ocr_pipeline as ocr
 
 
 def main(argv: list[str]) -> int:

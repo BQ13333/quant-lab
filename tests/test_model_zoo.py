@@ -138,7 +138,6 @@ def test_regime_conditioned_model():
     assert sf.scores.shape == (end - start, prices.shape[1])
     assert sf.model_name == "regime_test"
     assert not sf.scores.empty
-    # At least some rows should be zeroed out because not all rows match trend_up
     regimes = detector.describe(prices).iloc[start:end]
     mask = regimes.apply(lambda r: "trend_up" in r if pd.notna(r) else False)
     if not mask.all():

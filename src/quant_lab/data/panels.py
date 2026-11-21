@@ -44,7 +44,6 @@ def build_panels(
     tickers = sorted({col[0] for col in ohlcv_df.columns})
     fields = ["Open", "High", "Low", "Close", "Volume"]
 
-    # ---- local_prices panel -------------------------------------------------
     local_prices = pd.DataFrame(
         index=ohlcv_df.index,
         columns=pd.MultiIndex.from_product([tickers, fields]),
@@ -55,7 +54,6 @@ def build_panels(
             if (ticker, field) in ohlcv_df.columns:
                 local_prices[(ticker, field)] = ohlcv_df[(ticker, field)].astype(float)
 
-    # Extract local closes for FX conversion and return computation
     local_closes = pd.DataFrame(
         {
             ticker: local_prices[(ticker, "Close")]
@@ -64,7 +62,6 @@ def build_panels(
         }
     )
 
-    # ---- usd_prices panel ---------------------------------------------------
     usd_closes = convert_local_prices_to_usd(local_closes, instruments, fx_prices)
 
     usd_prices = local_prices.copy()
@@ -94,12 +91,9 @@ def build_panels(
         for field in ["Open", "High", "Low"]:
             if (ticker, field) in local_prices.columns:
                 usd_prices[(ticker, field)] = local_prices[(ticker, field)] / aligned_fx
-        # Volume is share count; keep as-is
 
-    # ---- returns ------------------------------------------------------------
     local_returns = np.log(local_closes).diff()
 
-    # FX returns: map each ticker to its currency's FX return
     fx_returns = pd.DataFrame(index=local_closes.index)
     for ticker in tickers:
         inst = instrument_map.get(ticker)
@@ -118,7 +112,6 @@ def build_panels(
         else:
             fx_returns[ticker] = np.nan
 
-    # USD log returns = local log returns - FX log returns
     usd_returns = pd.DataFrame(index=local_returns.index)
     for ticker in tickers:
         if ticker in local_returns.columns and ticker in fx_returns.columns:
@@ -126,7 +119,6 @@ def build_panels(
         else:
             usd_returns[ticker] = np.nan
 
-    # ---- metadata -----------------------------------------------------------
     metadata = pd.DataFrame(
         [
             {

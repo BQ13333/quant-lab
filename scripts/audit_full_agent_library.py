@@ -18,7 +18,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_formula_vision_repairs as vision  # noqa: E402
+import run_zai_formula_vision_repairs as vision
 
 
 PAGE_RE = re.compile(r"<!--\s*OCR_PAGE\s+(\d+)\s+source=[^>]+-->")
@@ -124,7 +124,7 @@ def main() -> None:
             try:
                 with Image.open(image) as handle:
                     handle.verify()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 doc_errors.append(f"invalid_image:{target}:{exc}")
                 continue
             image_count += 1

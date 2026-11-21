@@ -127,7 +127,7 @@ class MalaysiaV2PairedEngine:
 
     def load_matrices(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if self._loaded is not None:
-            return tuple(frame.copy() for frame in self._loaded)  # type: ignore[return-value]
+            return tuple(frame.copy() for frame in self._loaded)
         columns = [
             "date",
             "ticker",
@@ -163,7 +163,7 @@ class MalaysiaV2PairedEngine:
         if not price.index.equals(returns.index):
             raise ValueError("Malaysia V2 price and return calendars differ")
         self._loaded = (price, returns, adv, volatility)
-        return tuple(frame.copy() for frame in self._loaded)  # type: ignore[return-value]
+        return tuple(frame.copy() for frame in self._loaded)
 
     def compute_all_arms(self) -> tuple[V2ArmComputation, ...]:
         return (*self.compute_arms("control"), *self.compute_arms("challenger"))
