@@ -19,9 +19,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_formula_retries as retry  # noqa: E402
-import run_zai_formula_vision_repairs as vision  # noqa: E402
-import run_zai_ocr_pipeline as ocr  # noqa: E402
+import run_zai_formula_retries as retry
+import run_zai_formula_vision_repairs as vision
+import run_zai_ocr_pipeline as ocr
 
 
 MANUAL_REPAIRS: dict[tuple[str, int], dict[str, Any]] = {
@@ -410,8 +410,6 @@ def main(argv: list[str]) -> int:
         [{field: row.get(field, "") for field in retry.LEDGER_FIELDS} for row in merged],
         retry.LEDGER_FIELDS,
     )
-    # Reconstruct the durable decision ledger from all manual rows, so an
-    # idempotent rebuild never erases earlier adjudication provenance.
     configs = {**MANUAL_REPAIRS, **VISUAL_ACCEPTANCES}
     durable_decisions: list[dict[str, Any]] = []
     for key, config in configs.items():

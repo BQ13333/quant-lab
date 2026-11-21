@@ -204,7 +204,7 @@ def write_japan_g1_enrichment_artifacts(
                         normalized = pd.concat(
                             [normalized, normalized_chunk], ignore_index=True, sort=False
                         )[list(NORMALIZED_COLUMNS)]
-                except Exception as exc:  # vendor errors are retained as route evidence
+                except Exception as exc:
                     raw_events.append(
                         _raw_event(
                             pd.DataFrame(),

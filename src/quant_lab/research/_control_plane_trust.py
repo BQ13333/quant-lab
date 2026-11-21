@@ -323,7 +323,7 @@ class ValidationRunnerTrustStore:
         try:
             from cryptography.exceptions import InvalidSignature
             from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        except ImportError as exc:  # pragma: no cover
+        except ImportError as exc:
             raise IntegrityError("cryptography is required to verify validation-runner attestations") from exc
         public_key = Ed25519PublicKey.from_public_bytes(
             base64.b64decode(runner.public_key_base64)
@@ -524,7 +524,7 @@ class ApprovalTrustStore:
         try:
             from cryptography.exceptions import InvalidSignature
             from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        except ImportError as exc:  # pragma: no cover - dependency error is environment-specific
+        except ImportError as exc:
             raise ApprovalError("cryptography is required to verify Ed25519 approvals") from exc
         public_key = Ed25519PublicKey.from_public_bytes(base64.b64decode(signer.public_key_base64))
         try:
@@ -552,7 +552,7 @@ class ApprovalTrustStore:
         try:
             from cryptography.exceptions import InvalidSignature
             from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        except ImportError as exc:  # pragma: no cover
+        except ImportError as exc:
             raise ApprovalError("cryptography is required to verify Ed25519 supersessions") from exc
         public_key = Ed25519PublicKey.from_public_bytes(
             base64.b64decode(signer.public_key_base64)

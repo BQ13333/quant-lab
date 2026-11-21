@@ -549,7 +549,6 @@ def _historical_manifest(
         "target": None,
         "label_horizon": None,
         "split_manifest_id": None,
-        # These are deliberately unknown: legacy prose is not replayable control-plane state.
         "workflow_status": None,
         "validation_status": None,
         "promotion_status": record["promotion_status"],
@@ -1529,7 +1528,6 @@ def _build_artifact_index(
         elif classification == "superseded_historical_version":
             row.update(policy="excluded_superseded", reason="Superseded historical experiment evidence; available by explicit registry lookup.")
         elif classification in {"genuine_rejected_closed", "parked_awaiting_point_in_time_data"}:
-            # This branch is defensive; real named evidence should be selected above.
             row.update(policy="registry_evidence_only", reason="Real experiment evidence represented by the canonical findings registry.")
         elif (exclusion := _base_exclusion(rel_path)) is not None:
             row.update(policy=exclusion[0], reason=exclusion[1])
@@ -2122,8 +2120,6 @@ def _default_embedder(model_name: str, cache_dir: Path | None) -> Callable[[Sequ
     try:
         from fastembed import TextEmbedding
     except ImportError:
-        # Reuse the already provisioned local RAG runtime without installing a
-        # second model stack into quant_lab's research environment.
         version = f"python{sys.version_info.major}.{sys.version_info.minor}"
         local_rag_home = Path(
             os.environ.get(

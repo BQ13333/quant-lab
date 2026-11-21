@@ -817,7 +817,7 @@ def _resolve_id_token(
     refresh_token = environ.get("JQUANTS_REFRESH_TOKEN", "").strip()
     if not refresh_token:
         return None, "none", 0
-    del clock  # the refresh response is deliberately not persisted or timestamped
+    del clock
     for attempt in range(1, retries + 2):
         try:
             response = _coerce_response(

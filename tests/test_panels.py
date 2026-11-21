@@ -108,8 +108,6 @@ def test_build_panels_returns(synthetic_ohlcv, instruments, fx_prices):
     assert usd_ret.index.equals(synthetic_ohlcv.index)
     assert fx_ret.index.equals(synthetic_ohlcv.index)
 
-    # For USD-denominated assets, usd_returns == local_returns
-    # For SGD assets, usd_returns ≈ local_returns - fx_returns
     ticker = "D05.SI"
     expected = local_ret[ticker] - fx_ret[ticker]
     pd.testing.assert_series_equal(usd_ret[ticker], expected, check_names=False)

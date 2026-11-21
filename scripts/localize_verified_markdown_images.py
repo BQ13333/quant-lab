@@ -59,7 +59,7 @@ def fetch(job: dict[str, object], assets_dir: Path, timeout: int) -> dict[str, o
                 "status": "downloaded_verified_image", "error": "",
             }
         )
-    except Exception as exc:  # noqa: BLE001 - every failure is retained in the manifest.
+    except Exception as exc:
         row.update({"status": "download_failed", "error": f"{type(exc).__name__}: {exc}"})
     return row
 

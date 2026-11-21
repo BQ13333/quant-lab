@@ -41,7 +41,7 @@ def _synthetic_returns() -> pd.DataFrame:
     dates = pd.date_range("2020-01-01", periods=20)
     np.random.seed(1)
     rets = np.random.randn(20) * 0.01
-    rets[5] = 0.50  # outlier
+    rets[5] = 0.50
     return pd.DataFrame({"A": rets}, index=dates)
 
 
@@ -60,7 +60,7 @@ def test_stale_price_report():
     prices = _synthetic_prices()
     report = stale_price_report(prices)
 
-    assert report.loc["A", "stale_days_count"] == 19  # all same
+    assert report.loc["A", "stale_days_count"] == 19
     assert report.loc["A", "max_consecutive_stale"] == 19
     assert report.loc["B", "stale_days_count"] == 0
 
@@ -84,7 +84,6 @@ def test_outlier_report():
 
 def test_gap_report():
     dates = pd.date_range("2020-01-01", periods=20)
-    # Create a gap: missing 2020-01-06 to 2020-01-10
     prices = pd.DataFrame(
         {"A": list(range(100, 105)) + [None] * 5 + list(range(110, 120))},
         index=dates,
@@ -92,7 +91,6 @@ def test_gap_report():
     report = gap_report(prices)
 
     assert report.loc["A", "gap_count"] == 1
-    # Calendar days between 2020-01-05 and 2020-01-11 = 6
     assert report.loc["A", "max_gap_days"] == 6
 
 
@@ -127,7 +125,6 @@ def test_summary_quality_score_empty():
 
 
 def test_summary_quality_score_combined():
-    # Build a combined report
     prices = _synthetic_prices()
     volumes = _synthetic_volumes()
     returns = _synthetic_returns()

@@ -416,8 +416,6 @@ def main() -> int:
         }:
             errors.append(f"{row['candidate_id']}: invalid peer review status")
 
-    # Idempotent reruns after Wave 5 integration must not report the wave's own
-    # routed corpus rows as pre-existing collisions.
     comparison_corpus = [
         row for row in corpus if not str(row.get("document_id", "")).startswith("wave5-")
     ]

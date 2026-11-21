@@ -151,7 +151,7 @@ def probe_refinitiv_fields(
                 try:
                     history = ld.get_history(universe=[str(ric)], fields=[field], interval=interval, count=count)
                     row.update(_non_null_stats(history))
-                except Exception as exc:  # pragma: no cover - depends on live vendor state
+                except Exception as exc:
                     row.update(_non_null_stats(pd.DataFrame()))
                     row["error"] = f"{type(exc).__name__}: {exc}"
                 rows.append(row)

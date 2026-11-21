@@ -300,7 +300,7 @@ def validate_refinitiv_symbol_candidates(
                     best = {**stats, "validated_close_field": field, "error": ""}
                     break
                 errors.append(f"{field}: no data")
-            except Exception as exc:  # pragma: no cover - live vendor state
+            except Exception as exc:
                 errors.append(f"{field}: {type(exc).__name__}: {exc}")
             if sleep_seconds > 0:
                 time.sleep(sleep_seconds)

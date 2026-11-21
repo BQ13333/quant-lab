@@ -1166,8 +1166,6 @@ def test_failed_gate_rejects_instead_of_requesting_approval(tmp_path, runner_aut
         "status"
     ] == "pass"
 
-    # A coherent rewrite of the unsigned local projection/event must not be
-    # able to contradict the statuses derived from signed gate artifacts.
     event_path = sorted((store.run_root / ".control" / "events").glob("*.json"))[-1]
     event_payload = json.loads(event_path.read_text())
     assert event_payload["event_type"] == "validation_admitted"

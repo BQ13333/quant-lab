@@ -99,8 +99,6 @@ def _source_role(filename: str) -> str:
 def scan_source_corpus(library_root: Path) -> tuple[SourceRecord, ...]:
     """Inventory an authorized Markdown research corpus without altering it."""
 
-    # Root-level operational notes are not books. Keep the frozen 69-document
-    # research corpus stable when readiness/runbook Markdown is added later.
     non_book_root_notes = {"LSEG_MONDAY_READINESS.md"}
     paths = sorted(
         (

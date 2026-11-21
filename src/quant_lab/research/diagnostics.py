@@ -69,7 +69,6 @@ def generate_diagnostics_summary(
 
     merged = pd.concat(frames, ignore_index=True)
 
-    # Basic gate evaluation
     gate_passed = []
     gate_reasons = []
     promote_passed = []
@@ -86,7 +85,6 @@ def generate_diagnostics_summary(
         gate_passed.append(decision.passed)
         gate_reasons.append("; ".join(decision.reasons) if decision.reasons else "")
 
-        # Promotion gate if returns/weights available
         model_name = row.get("model_name", "")
         returns = None
         if weights_dict is not None and model_name in weights_dict:
@@ -120,7 +118,6 @@ def generate_cost_sensitivity(
 ) -> pd.DataFrame:
     """Wrapper around cost_stress, formatted for CSV."""
     if isinstance(returns, pd.DataFrame):
-        # Assume portfolio returns are already computed or compute from first column
         series = returns.iloc[:, 0] if returns.shape[1] > 0 else pd.Series(dtype=float)
     else:
         series = returns
@@ -144,7 +141,6 @@ def generate_country_attribution(
     aligned_weights = weights.reindex(columns=returns.columns).fillna(0.0)
     aligned_returns = returns.reindex(index=weights.index).fillna(0.0)
 
-    # Equal-weight benchmark across all assets
     overall_equal_return = aligned_returns.mean(axis=1).mean()
     n_countries = len(group_map.dropna().unique())
     benchmark_weight = 1.0 / n_countries if n_countries > 0 else 0.0
@@ -159,12 +155,10 @@ def generate_country_attribution(
         w = aligned_weights[common_assets]
         r = aligned_returns[common_assets]
 
-        # Daily contribution, then average
         contribution = (w * r).sum(axis=1).mean()
         avg_weight = w.abs().sum(axis=1).mean()
-        avg_return = r.mean(axis=1).mean()  # equal-weight within country
+        avg_return = r.mean(axis=1).mean()
 
-        # Simplified Brinson-style attribution
         selection_effect = avg_weight * (avg_return - overall_equal_return)
         allocation_effect = (avg_weight - benchmark_weight) * (avg_return - overall_equal_return)
 
@@ -199,7 +193,6 @@ def generate_monthly_attribution(
         weights.shift(1).fillna(0.0) * returns.reindex(weights.index)
     ).sum(axis=1)
 
-    # Ensure DatetimeIndex
     if not hasattr(portfolio_returns.index, "month"):
         portfolio_returns.index = pd.date_range(
             start="2000-01-01", periods=len(portfolio_returns), freq="B"
@@ -262,7 +255,6 @@ def generate_fx_attribution(
     aligned_weights = weights.reindex(columns=returns.columns).fillna(0.0)
     aligned_returns = returns.reindex(index=weights.index).fillna(0.0)
 
-    # Ensure fx_returns is a DataFrame aligned with returns
     if isinstance(fx_returns, pd.Series):
         fx = pd.DataFrame(
             {
@@ -278,7 +270,6 @@ def generate_fx_attribution(
 
     local_returns = aligned_returns - fx
 
-    # Per-asset mean contributions
     fx_contribution = (aligned_weights * fx).mean()
     local_contribution = (aligned_weights * local_returns).mean()
     total_contribution = (aligned_weights * aligned_returns).mean()
@@ -311,7 +302,6 @@ def generate_turnover_report(
 
     rows = []
 
-    # Overall
     rows.append(
         {
             "category": "overall",
@@ -322,7 +312,6 @@ def generate_turnover_report(
         }
     )
 
-    # By month
     by_month = (
         decomp.groupby("by_month")["total_turnover"]
         .agg(["mean", "max", "sum"])
@@ -339,7 +328,6 @@ def generate_turnover_report(
             }
         )
 
-    # By country
     if metadata is not None and "country" in metadata.columns:
         for country in sorted(metadata["country"].dropna().unique()):
             assets = metadata[metadata["country"] == country].index
@@ -356,7 +344,6 @@ def generate_turnover_report(
                     }
                 )
 
-    # By model
     if isinstance(weights.columns, pd.MultiIndex):
         for model in sorted(weights.columns.get_level_values(0).unique()):
             model_assets = weights.columns[weights.columns.get_level_values(0) == model]
@@ -386,7 +373,6 @@ def generate_turnover_report(
                     }
                 )
 
-    # Top 10 asset contributors
     for asset, tot in total_by_asset.head(10).items():
         rows.append(
             {
@@ -415,7 +401,7 @@ def generate_liquidity_report(
         return pd.DataFrame()
 
     adv = volumes.mean()
-    capital = 1e8  # $100M default
+    capital = 1e8
 
     dollar_trade = weights.diff().abs().mul(capital).fillna(0.0)
     aligned_adv = adv.reindex(weights.columns).replace(0.0, pd.NA)
@@ -440,7 +426,6 @@ def generate_liquidity_report(
             }
         )
 
-    # Country aggregation
     if metadata is not None and "country" in metadata.columns:
         for country in sorted(metadata["country"].dropna().unique()):
             assets = metadata[metadata["country"] == country].index
@@ -493,7 +478,6 @@ def generate_model_cards(
         for col in leaderboard.columns:
             summary[col] = row.get(col, np.nan)
 
-        # Cost sensitivity
         if not returns.empty and not weights.empty:
             cs = cost_stress(returns, weights, cost_grid=(0.0, cost_bps, cost_bps * 2))
             for _, cs_row in cs.iterrows():
@@ -502,14 +486,12 @@ def generate_model_cards(
             for cost in (0.0, cost_bps, cost_bps * 2):
                 summary[f"cost_sharpe_{cost:.0f}bps"] = np.nan
 
-        # Monthly stability
         if not returns.empty:
             ms = monthly_stability(returns)
             if not ms.empty:
                 for col in ms.columns:
                     summary[f"monthly_{col}"] = ms[col].iloc[0]
 
-        # Gate evaluation
         dsr = float(row.get("deflated_sharpe", 0.0))
         decision = gate.evaluate(
             sharpe=float(row.get("sharpe", 0.0)),
@@ -520,7 +502,6 @@ def generate_model_cards(
         summary["gate_passed"] = decision.passed
         summary["gate_reasons"] = "; ".join(decision.reasons) if decision.reasons else ""
 
-        # Promotion gate
         if not returns.empty:
             promote_row = row.to_dict()
             promote_row["returns"] = returns
@@ -537,7 +518,6 @@ def generate_model_cards(
             summary["promote_passed"] = False
             summary["promote_reasons"] = "insufficient data"
 
-        # Country / month dominance
         if not returns.empty and not weights.empty and group_map is not None and not group_map.empty:
             summary["country_dominance_ok"] = no_single_country_dominance(
                 returns, weights, group_map

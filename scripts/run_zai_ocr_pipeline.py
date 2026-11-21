@@ -125,7 +125,7 @@ def count_pdf_pages(path: Path) -> tuple[int | None, str | None]:
     try:
         reader = PdfReader(str(path))
         return len(reader.pages), None
-    except Exception as exc:  # noqa: BLE001 - preflight should record bad PDFs.
+    except Exception as exc:
         return None, f"{type(exc).__name__}: {exc}"
 
 
@@ -902,7 +902,7 @@ def source_page_math_risk(document: DocumentRecord) -> list[dict[str, Any]]:
                         "error": "",
                     }
                 )
-    except Exception as exc:  # noqa: BLE001 - source-risk failure is recorded per document.
+    except Exception as exc:
         rows.append(
             {
                 "document_id": document.document_id,
@@ -1188,7 +1188,7 @@ def post_zai_chunk(
                 else:
                     last_error = f"HTTP {response.status_code}: {response_text[:2000]}"
                     break
-            except Exception as exc:  # noqa: BLE001 - retry and record operational failures.
+            except Exception as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
 
             if attempt < retries:
@@ -1337,7 +1337,7 @@ def process_chunk(
         row = summarize_response(chunk, response)
         row["started_at_utc"] = started_at
         return row
-    except Exception as exc:  # noqa: BLE001 - per-chunk failure must be resumable.
+    except Exception as exc:
         write_json(
             error_path,
             {

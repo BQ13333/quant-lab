@@ -87,8 +87,6 @@ def classify_notice_title(title: str) -> str:
     if re.search(r"\b(?:ETF|ETN)\b|subscription warrant|securities option", value, re.I):
         return ""
 
-    # The researched denominator contains one revised activation page. It is retained as a
-    # correction event; standalone correction bulletins were not part of the researched set.
     if re.search(r"[\[【](?:revised?|correction)[\]】]", value, re.I) and re.match(
         r"^Daily Price Limits to be Broadened\s*:", value, re.I
     ):
@@ -503,7 +501,7 @@ def execute_notice_fetch(
                 state_rows.append(_failed_state(item, status, f"http_status={status}"))
         except ImmutableArtifactError:
             raise
-        except Exception as exc:  # Fetch failures are retained for deterministic resume diagnostics.
+        except Exception as exc:
             state_rows.append(_failed_state(item, 0, f"{type(exc).__name__}:{exc}"[:1000]))
         _atomic_csv(state_file, pd.DataFrame(state_rows))
         if sleep_seconds and requests:

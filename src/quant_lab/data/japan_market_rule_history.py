@@ -582,8 +582,6 @@ def _producer_blockers(
     if len(amendment_ledger) != 15:
         blockers.append("rule_amendment_ledger_denominator_invalid")
     counts = assignments.groupby("index_scope").size().to_dict() if not assignments.empty else {}
-    # The official June 5, 2023 file contains 398 populated Mid400 rows as of
-    # that date. Preserve the source denominator instead of forcing the label.
     if counts != {
         "TOPIX100": 100 * (2 + len(TOPIX100_SNAPSHOT_DATES)),
         "TOPIX_MID400": 398 * len(MID400_SNAPSHOT_DATES),

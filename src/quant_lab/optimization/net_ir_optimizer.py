@@ -44,7 +44,7 @@ class ConstraintResult:
     passed: bool
     value: float
     limit: float
-    violation: float  # 0 if passed, positive if failed
+    violation: float
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,6 @@ class OptimizedCandidateResult:
     @property
     def score(self) -> float:
         """Composite score: net IR minus penalty for constraint violations."""
-        # Heavy penalty for constraint violations so feasible solutions dominate
         return self.net_ir - 10.0 * self.constraint_violation
 
     @property
@@ -235,7 +234,6 @@ class NetIRConstrainedOptimizer:
         constraints: list[ConstraintResult] = []
         pp = self.periods_per_year
 
-        # 1. Max drawdown
         dd = max_drawdown(net_returns)
         constraints.append(
             ConstraintResult(
@@ -247,7 +245,6 @@ class NetIRConstrainedOptimizer:
             )
         )
 
-        # 2. Turnover
         turnover = weights.diff().abs().sum(axis=1).mean()
         constraints.append(
             ConstraintResult(
@@ -259,7 +256,6 @@ class NetIRConstrainedOptimizer:
             )
         )
 
-        # 3. Max country weight
         if group_map is not None and not group_map.empty:
             country_weights = self._country_max_weight(weights, group_map)
             max_cw = country_weights.max() if not country_weights.empty else 0.0
@@ -283,7 +279,6 @@ class NetIRConstrainedOptimizer:
                 )
             )
 
-        # 4. Max asset weight
         max_aw = weights.abs().max().max() if not weights.empty else 0.0
         constraints.append(
             ConstraintResult(
@@ -295,7 +290,6 @@ class NetIRConstrainedOptimizer:
             )
         )
 
-        # 5. Cost stress: net Sharpe at 2x cost > 0
         cs = cost_stress(gross_returns, weights, cost_grid=(0, cost_bps, cost_bps * 2))
         net_sharpe_2x = 0.0
         if not cs.empty and len(cs) >= 3:
@@ -310,7 +304,6 @@ class NetIRConstrainedOptimizer:
             )
         )
 
-        # 6. Deflated Sharpe
         dsr = deflated_sharpe_ratio(net_returns, trial_sharpes=trial_sharpes, periods_per_year=pp)
         constraints.append(
             ConstraintResult(
@@ -332,7 +325,6 @@ class NetIRConstrainedOptimizer:
             common = [c for c in cols if c in weights.columns]
             if common:
                 country_weights = pd.concat([country_weights, weights[common].sum(axis=1)], axis=1).sum(axis=1)
-        # Recalculate properly
         cw = pd.DataFrame(index=weights.index)
         for country in aligned.dropna().unique():
             cols = aligned[aligned == country].index
@@ -636,7 +628,6 @@ class NetIRConstrainedOptimizer:
         results: list[OptimizedCandidateResult] = []
         trial_sharpes: list[float] = []
 
-        # First pass: collect all trial sharpes (needed for deflated Sharpe)
         for model in models:
             try:
                 model_results = self._evaluate_model_grid_cached(
@@ -652,10 +643,8 @@ class NetIRConstrainedOptimizer:
             trial_sharpes.extend(candidate.net_sharpe for candidate in model_results)
             results.extend(model_results)
 
-        # Second pass: recompute deflated Sharpe with full trial set
         final_results: list[OptimizedCandidateResult] = []
         for result in results:
-            # Re-evaluate constraints with full trial_sharpes
             constraints = self._evaluate_constraints(
                 result.net_returns,
                 result.gross_returns,
@@ -691,7 +680,6 @@ class NetIRConstrainedOptimizer:
                 )
             )
 
-        # Rank by composite score (net IR minus constraint violations)
         final_results.sort(key=lambda r: r.score, reverse=True)
         return final_results
 

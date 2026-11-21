@@ -105,7 +105,6 @@ def outlier_report(returns: pd.DataFrame, z_threshold: float = 4.0) -> pd.DataFr
     mean = cleaned.mean()
     std = cleaned.std()
 
-    # Avoid division by zero / NaN std
     valid_std = std.replace(0, np.nan).fillna(np.inf)
     outliers = (cleaned - mean).abs() > z_threshold * valid_std
 

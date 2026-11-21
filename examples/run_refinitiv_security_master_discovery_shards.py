@@ -229,7 +229,7 @@ def main() -> None:
                     extra_filter=extra_filter,
                 )
                 rows.append(_summary_row(shard_id, shard_run_id, artifact.manifest, artifact.manifest_path))
-            except Exception as exc:  # pragma: no cover - exercised against live vendor routes.
+            except Exception as exc:
                 rows.append(
                     {
                         "prefix": shard_id,

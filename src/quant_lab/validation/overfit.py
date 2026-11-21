@@ -40,7 +40,6 @@ def probability_of_backtest_overfitting(
             raise ValueError("PBO requires a 2D matrix with at least two strategies")
         return 0.0
 
-    # Drop NaN rows/columns
     valid_rows = ~np.isnan(matrix).all(axis=1)
     valid_cols = ~np.isnan(matrix).all(axis=0)
     matrix = matrix[valid_rows][:, valid_cols]
@@ -101,9 +100,6 @@ def multiple_comparison_adjustment(
     if n == 0:
         return pd.Series(dtype=float)
 
-    # Two-sided t-test for Sharpe > 0 (simplified: use z-approximation)
-    # t = sr * sqrt(n-1) assuming i.i.d normal returns
-    # p-value = 1 - CDF(t) for one-sided, 2 * (1 - CDF(|t|)) for two-sided
     pvalues = np.zeros(n)
     for i, sr in enumerate(values):
         if sr == 0 or n < 2:
@@ -113,7 +109,6 @@ def multiple_comparison_adjustment(
         if stats is not None:
             pvalues[i] = 2 * (1 - stats.norm.cdf(abs(t_stat)))
         else:
-            # Fallback to standard normal CDF approximation
             pvalues[i] = 2 * (1 - _approx_norm_cdf(abs(t_stat)))
 
     if method == "bonferroni":
@@ -132,7 +127,6 @@ def multiple_comparison_adjustment(
         for rank, idx in enumerate(sorted_idx, start=1):
             raw = pvalues[idx] * n / rank
             adjusted[idx] = min(raw, 1.0)
-        # Ensure monotonicity
         for i in range(n - 2, -1, -1):
             adjusted[sorted_idx[i]] = min(adjusted[sorted_idx[i]], adjusted[sorted_idx[i + 1]])
     else:

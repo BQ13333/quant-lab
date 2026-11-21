@@ -11,8 +11,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_formula_retries as retry  # noqa: E402
-import run_zai_ocr_pipeline as ocr  # noqa: E402
+import run_zai_formula_retries as retry
+import run_zai_ocr_pipeline as ocr
 
 
 REVIEWS = {
@@ -56,8 +56,6 @@ def main() -> None:
     for key, labels in REVIEWS.items():
         document = documents.get(key[0])
         if document is None:
-            # The review registry is shared by multiple acquisition waves.
-            # Entries from another run are intentionally ignored.
             continue
         raw = raw_by_page.get(key, "")
         if not raw or not Path(raw).is_file():

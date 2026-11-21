@@ -14,9 +14,6 @@ from quant_lab.optimization.search_spaces import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Search space fixtures
-# ---------------------------------------------------------------------------
 
 
 def test_model_search_space():
@@ -74,9 +71,6 @@ def test_regime_search_space():
     assert set(d["vol_lookback"]) == {21, 63}
 
 
-# ---------------------------------------------------------------------------
-# Optuna objective & holdout isolation
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -147,7 +141,6 @@ def test_optuna_objective_runs_with_synthetic_data(
         },
         value=0.5,
     )
-    # Create a dummy study so suggest_* works on the trial
     study = optuna.create_study()
     study.add_trial(trial)
     fetched_trial = study.trials[0]
@@ -184,20 +177,15 @@ def test_optuna_holdout_isolation(synthetic_prices: pd.DataFrame):
     assert isinstance(best_value, float)
     assert len(study.trials) == 3
 
-    # Ensure no trial evaluated on holdout dates
     holdout_dates = set(holdout_manager.holdout_index)
     for trial in study.trials:
-        # The trial values are floats (IR), but we can verify indirectly by
-        # checking that the study completed without error.
         assert trial.value is not None or trial.state == optuna.trial.TrialState.COMPLETE
 
-    # Explicit holdout isolation check via HoldoutManager
     search_results = [
         {"params": best_params, "fold_dates": list(holdout_manager.train_index[-5:])}
     ]
-    holdout_manager.assert_no_holdout_optimization(search_results)  # should not raise
+    holdout_manager.assert_no_holdout_optimization(search_results)
 
-    # This should raise because we inject a holdout date
     bad_results = [
         {"params": best_params, "fold_dates": [holdout_manager.holdout_index[0]]}
     ]
@@ -206,15 +194,12 @@ def test_optuna_holdout_isolation(synthetic_prices: pd.DataFrame):
 
 
 def test_optuna_not_installed_graceful():
-    # Ensure the module imports without error when optuna is missing
     import importlib
     import sys
 
     mod_name = "quant_lab.optimization.optuna_search"
-    # Re-import to trigger the ImportError path if optuna is absent
     if mod_name in sys.modules:
         del sys.modules[mod_name]
-    # Import should succeed (lazy check)
     from quant_lab.optimization import optuna_search as os_mod
     assert hasattr(os_mod, "objective")
     assert hasattr(os_mod, "run_optuna_search")

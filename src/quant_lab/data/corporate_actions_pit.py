@@ -206,7 +206,7 @@ def execute_corporate_action_event_plan(
                 "error": "",
                 "response_success": True,
             }
-        except Exception as exc:  # pragma: no cover - live vendor path
+        except Exception as exc:
             retryable = is_refinitiv_retryable_provider_error(exc)
             error = RefinitivRetryableProviderError(str(exc)) if retryable else exc
             manifest_row = {

@@ -442,7 +442,7 @@ def _g3_pit_index_fundamentals(context: dict[str, Any]) -> UsaQualityLane:
 def _g4_fx_calendar_tca(context: dict[str, Any]) -> UsaQualityLane:
     paths: UsaDataQualityPaths = context["paths"]
     blockers: list[str] = []
-    score = 0.5  # USD base/local return handling is simpler, but not enough for a pass.
+    score = 0.5
     calendar_manifest = _read_json(paths.fx_calendar_tca_dir / "manifest.json") if paths.fx_calendar_tca_dir else {}
     evidence_quality = (
         _read_csv(paths.fx_calendar_tca_dir / "evidence_quality.csv")

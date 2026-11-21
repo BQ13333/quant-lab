@@ -426,7 +426,7 @@ def execute_refinitiv_historical_plan(
                 "first_trade_date_min": first_trade_date_min,
                 "retire_date_max": retire_date_max,
             }
-        except RefinitivRetryableProviderError as exc:  # pragma: no cover - provider-dependent path.
+        except RefinitivRetryableProviderError as exc:
             manifest_row = {
                 **row.to_dict(),
                 "status": "failed_retryable_provider",
@@ -451,7 +451,7 @@ def execute_refinitiv_historical_plan(
                 "error": str(exc),
             }
             stop_after_row = True
-        except Exception as exc:  # pragma: no cover - provider-dependent path.
+        except Exception as exc:
             manifest_row = {
                 **row.to_dict(),
                 "status": "failed",

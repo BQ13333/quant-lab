@@ -982,7 +982,7 @@ def _header(headers: Mapping[str, str], name: str) -> str:
 
 
 def _read_bounded(response: object) -> bytes:
-    payload = response.read(MAX_RESPONSE_BYTES + 1)  # type: ignore[attr-defined]
+    payload = response.read(MAX_RESPONSE_BYTES + 1)
     if len(payload) > MAX_RESPONSE_BYTES:
         raise ValueError(f"response exceeds {MAX_RESPONSE_BYTES} byte safety limit")
     return payload

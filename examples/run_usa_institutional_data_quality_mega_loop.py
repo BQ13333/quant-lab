@@ -680,7 +680,7 @@ def _health_check(session_name: str, health_ric: str) -> tuple[bool, str]:
         adapter.open()
         ok = bool(adapter.health_check())
         return ok, "" if ok else getattr(adapter, "last_health_error", "")
-    except Exception as exc:  # pragma: no cover - live vendor path
+    except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
     finally:
         try:

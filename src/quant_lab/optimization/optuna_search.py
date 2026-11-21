@@ -26,9 +26,6 @@ except ImportError:
     _HAS_OPTUNA = False
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 
 def _sample_from_space(trial: Any, space: dict[str, tuple[Any, ...]]) -> dict[str, Any]:
@@ -46,7 +43,6 @@ def _build_model(model_params: dict[str, Any]) -> Any:
     )
 
     lookback = model_params.get("lookback", 63)
-    # Choose a simple model family based on lookback for diversity
     if lookback <= 42:
         return MeanReversionModel(name=f"mean_reversion_{lookback}", lookback=lookback)
     return MomentumModel(name=f"momentum_{lookback}", lookback=lookback)
@@ -98,9 +94,6 @@ def _build_weights(
     return weights
 
 
-# ---------------------------------------------------------------------------
-# Objective
-# ---------------------------------------------------------------------------
 
 
 def objective(
@@ -120,7 +113,6 @@ def objective(
     if not _HAS_OPTUNA:
         raise ImportError("optuna is required. Install it with: pip install 'quant-lab[research]'")
 
-    # Sample hyperparameters
     model_params = _sample_from_space(trial, ModelSearchSpace().to_dict())
     allocator_params = _sample_from_space(trial, AllocatorSearchSpace().to_dict())
     portfolio_params = _sample_from_space(trial, PortfolioSearchSpace().to_dict())
@@ -133,7 +125,6 @@ def objective(
     ):
         return -1.0e12
 
-    # Fit model on train, predict on test
     model = _build_model(model_params)
     train_start = prices.index.get_loc(train_idx[0])
     train_end = prices.index.get_loc(train_idx[-1]) + 1
@@ -144,7 +135,6 @@ def objective(
     signals = model.predict(prices, test_start, test_end)
     signals.validate_against(prices)
 
-    # Build allocator weights
     weights = _build_weights(
         allocator_params=allocator_params,
         portfolio_params=portfolio_params,
@@ -153,20 +143,17 @@ def objective(
         group_map=group_map,
     )
 
-    # Net returns on test
     asset_returns = prices.pct_change(fill_method=None).fillna(0.0)
     gross_returns = (weights.shift(1).fillna(0.0) * asset_returns.reindex(weights.index)).sum(axis=1)
     cost_bps = cost_params.get("cost_bps", 5)
     costs = linear_transaction_cost(weights, cost_bps)
     net_returns = gross_returns - costs
 
-    # Align to test period only
     net_returns = net_returns.reindex(test_idx).dropna()
 
     if net_returns.empty:
         return 0.0
 
-    # Net information ratio vs benchmark, or Sharpe if no benchmark
     if benchmark_returns is not None:
         aligned = pd.concat(
             [net_returns.rename("strategy"), benchmark_returns.rename("benchmark")],
@@ -185,9 +172,6 @@ def objective(
     return float(sharpe_ratio(net_returns, periods_per_year=252))
 
 
-# ---------------------------------------------------------------------------
-# Study creation
-# ---------------------------------------------------------------------------
 
 
 def create_optuna_study(
@@ -209,7 +193,6 @@ def create_optuna_study(
     import optuna
 
     train_index = holdout_manager.train_index
-    # Deterministic 70/30 split of the training data for inner CV
     split_point = int(len(train_index) * 0.7)
     inner_train = train_index[:split_point]
     inner_test = train_index[split_point:]
@@ -232,9 +215,6 @@ def create_optuna_study(
     return study
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 
 def run_optuna_search(
@@ -261,7 +241,6 @@ def run_optuna_search(
     if holdout_manager is None:
         holdout_manager = HoldoutManager(prices.index, holdout_fraction=0.2)
 
-    # Verify holdout is isolated: objective only uses train_index internally
     holdout_dates = set(holdout_manager.holdout_index)
     train_dates = set(holdout_manager.train_index)
     if holdout_dates & train_dates:

@@ -228,7 +228,7 @@ def probe_ibes_revision_timestamp_routes(
                     base_row=base_row,
                 )
             )
-        except Exception as exc:  # pragma: no cover - live vendor path
+        except Exception as exc:
             rows.append(
                 {
                     **base_row,

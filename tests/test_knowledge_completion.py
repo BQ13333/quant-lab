@@ -389,8 +389,6 @@ def _valid_admission(completion, tmp_path, monkeypatch):
     ]
     repository = workspace / "quant_lab"
     subprocess.run(["git", "init", "-q", str(repository)], check=True)
-    # Runtime control-plane artifacts are deliberately outside source control;
-    # mirror the production repository rule so retries do not create source drift.
     (repository / ".gitignore").write_text("vault/30_experiments/\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(repository), "config", "user.email", "fixture@example.test"], check=True)
     subprocess.run(["git", "-C", str(repository), "config", "user.name", "Fixture"], check=True)

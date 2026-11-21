@@ -667,7 +667,7 @@ def test_tse_wayback_lifecycle_pair_cardinality_is_fail_closed() -> None:
         _normalize_tse_wayback_lifecycle_pairs(
             None,
             None,
-            [(TSE_WAYBACK_V2,)],  # type: ignore[list-item]
+            [(TSE_WAYBACK_V2,)],
         )
     with pytest.raises(ValueError, match="either the legacy"):
         _normalize_tse_wayback_lifecycle_pairs(

@@ -130,7 +130,6 @@ def monthly_stability(returns: pd.Series | Sequence[float]) -> pd.DataFrame:
     if series.empty:
         return pd.DataFrame()
 
-    # Ensure DatetimeIndex for month grouping
     if not hasattr(series.index, "month"):
         series.index = pd.date_range(start="2000-01-01", periods=len(series), freq="B")
 
@@ -143,7 +142,6 @@ def monthly_stability(returns: pd.Series | Sequence[float]) -> pd.DataFrame:
     )
 
     positive = (monthly > 0).astype(int)
-    # streaks of positive months
     streaks = positive.groupby((positive != positive.shift()).cumsum()).sum()
     pos_streaks = streaks[streaks > 0]
     neg_streaks = streaks[streaks == 0]
@@ -265,7 +263,6 @@ def no_single_month_dominance(
     if series.empty:
         return True
 
-    # Ensure DatetimeIndex for month grouping
     if not hasattr(series.index, "month"):
         series.index = pd.date_range(start="2000-01-01", periods=len(series), freq="B")
 

@@ -34,8 +34,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-import run_zai_formula_retries as retry  # noqa: E402
-import run_zai_ocr_pipeline as ocr  # noqa: E402
+import run_zai_formula_retries as retry
+import run_zai_ocr_pipeline as ocr
 
 
 DEFAULT_ENDPOINT = "https://api.z.ai/api/paas/v4/chat/completions"
@@ -234,14 +234,9 @@ def validate_page_markdown(
     warnings: list[str] = []
     if not markdown.strip():
         reasons.append("empty_vision_markdown")
-    # Tag coverage is stronger than block count when equation tags are known:
-    # one align environment may contain several tagged equations, while layout
-    # OCR may split one visual display into several elements.
     minimum_count = 1 if expected_labels else expected_count
     if len(formulas) < minimum_count:
         reasons.append(f"display_formula_count_below_expected={len(formulas)}/{minimum_count}")
-    # More valid display blocks than the layout estimate is not a loss: vision
-    # may split one multi-line layout element into several Markdown displays.
     structure = markdown_structure_issues(markdown)
     reasons.extend(structure)
     missing_labels = [label for label in expected_labels if not label_is_present(markdown, label)]
@@ -345,7 +340,7 @@ def call_vision_api(
             last_error = f"HTTP {status_code}: {redact_secret(json.dumps(body, ensure_ascii=False), api_key)}"
             if status_code not in TRANSIENT_HTTP_STATUSES:
                 break
-        except Exception as exc:  # noqa: BLE001 - all provider errors become sanitized ledger rows.
+        except Exception as exc:
             last_error = f"{type(exc).__name__}: {redact_secret(exc, api_key)}"
         if attempt < retries:
             time.sleep(retry_sleep_seconds)
@@ -541,7 +536,7 @@ def process_vision_page(
             {**row, "validation": validation, "previous_retry_artifacts_unchanged": prior_retry_unchanged},
         )
         return row
-    except Exception as exc:  # noqa: BLE001 - immutable sanitized error record is required.
+    except Exception as exc:
         error = redact_secret(exc, api_key)
         error_type = type(exc).__name__
         if not paths["error"].exists():

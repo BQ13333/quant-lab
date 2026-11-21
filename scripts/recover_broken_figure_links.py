@@ -62,7 +62,6 @@ def main() -> None:
             ),
             None,
         )
-        # The registry is shared by multiple OCR waves.
         if chunk is None:
             continue
         raw = json.load(open(chunk["raw_response_path"], encoding="utf-8"))
@@ -92,7 +91,6 @@ def main() -> None:
         text = markdown_path.read_text(encoding="utf-8")
         for placeholder, mapping in spec["replacements"].items():
             if mapping is None:
-                # Remove only the broken image line; retain its nearby heading/caption prose.
                 import re
                 text = re.sub(rf"^!\[[^\]]*\]\({re.escape(placeholder)}\)\n?", "", text, flags=re.MULTILINE)
                 continue

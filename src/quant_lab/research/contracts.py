@@ -155,7 +155,7 @@ class ResearchContract:
             target = _CONTRACTS.get(str(kind))
             if target is None:
                 raise ValueError(f"unknown contract_type: {kind}")
-            return _from_mapping(target, body)  # type: ignore[return-value]
+            return _from_mapping(target, body)
         if kind != cls.contract_type:
             raise ValueError(f"expected contract_type {cls.contract_type}, got {kind}")
         return _from_mapping(cls, body)

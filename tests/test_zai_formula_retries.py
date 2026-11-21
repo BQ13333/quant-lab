@@ -232,13 +232,11 @@ def test_mocked_retry_is_immutable_resumable_and_page_assembled(tmp_path: Path, 
     assert "<!-- OCR_PAGE 1 source=formula_retry -->" in verified_text
     assert "x=1" in verified_text
 
-    # A normal rerun reuses the completed attempt and needs no API key.
     monkeypatch.setattr(retry.ocr, "env_api_key", lambda: None)
     assert retry.main(["--run-dir", str(run_dir)]) == 0
     assert calls == {"render": 1, "process": 1}
     assert len(retry.read_csv(run_dir / "formula_retry_results.csv")) == 1
 
-    # Force creates a second immutable attempt instead of replacing attempt 01.
     monkeypatch.setattr(retry.ocr, "env_api_key", lambda: "test-key-never-sent")
     assert retry.main(["--run-dir", str(run_dir), "--force-new-attempt"]) == 0
     assert calls == {"render": 2, "process": 2}

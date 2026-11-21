@@ -26,8 +26,6 @@ PAGE_RE = re.compile(r"<!-- OCR_PAGE (\d+) [^>]*-->")
 IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 
 
-# Each group is a single truthful Markdown figure. Multiple layout indices are
-# combined only when the source page presents them as one composite figure.
 RECOVERIES: list[dict[str, object]] = [
     {
         "document_id": "w5-06-bayesian-learning-and-inference-in-recurrent-switching-linear-dynamical-systems",

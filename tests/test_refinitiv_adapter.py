@@ -161,7 +161,7 @@ def test_refinitiv_adapter_rate_limit_does_not_fan_out_to_single_tickers():
         )
     except RefinitivRetryableProviderError as exc:
         assert "429 Too many requests" in str(exc)
-    else:  # pragma: no cover - assertion branch
+    else:
         raise AssertionError("Expected a retryable provider failure")
 
 

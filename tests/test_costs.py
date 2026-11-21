@@ -45,9 +45,6 @@ def test_linear_transaction_cost_on_synthetic():
         index=pd.date_range("2024-01-01", periods=3),
     )
     costs = linear_transaction_cost(weights, 10.0)
-    # Day 0: turnover = 0.0 (no prior position), cost = 0.0
-    # Day 1: turnover = 0.0, cost = 0.0
-    # Day 2: turnover = 1.0, cost = 0.001
     assert costs.iloc[0] == pytest.approx(0.0)
     assert costs.iloc[1] == pytest.approx(0.0)
     assert costs.iloc[2] == pytest.approx(0.001)
@@ -60,7 +57,6 @@ def test_adv_participation_cost_no_penalty():
     )
     adv = pd.Series({"A": 1e9, "B": 1e9})
     cost = adv_participation_cost(weights, adv, capital=1e8, max_participation=0.1)
-    # No weight change, so no penalty
     assert (cost == 0.0).all()
 
 
@@ -70,10 +66,6 @@ def test_adv_participation_cost_with_penalty():
         index=pd.date_range("2024-01-01", periods=3),
     )
     adv = pd.Series({"A": 1e6, "B": 1e6})
-    # Day 0: no prior position, trade = 0, penalty = 0
-    # Day 1: trade = 0.5 * 1e8 = 5e7 per asset, participation = 50
-    # excess = 50/0.1 - 1 = 499, penalty = 499 * 0.005 = 2.495 per asset
-    # Day 2: no trade, cost = 0
     cost = adv_participation_cost(weights, adv, capital=1e8, max_participation=0.1)
     assert cost.iloc[0] == pytest.approx(0.0)
     assert cost.iloc[1] == pytest.approx(4.99, rel=1e-3)
@@ -85,8 +77,8 @@ def test_spread_proxy_from_ohlcv():
     low = pd.DataFrame({"A": [9.0, 10.0], "B": [19.0, 20.0]})
     close = pd.DataFrame({"A": [9.5, 10.5], "B": [19.5, 20.5]})
     spread = spread_proxy_from_ohlcv(high, low, close)
-    expected_a = (10.0 - 9.0) / 9.5  # ~0.1053
-    expected_b = (20.0 - 19.0) / 19.5  # ~0.0513
+    expected_a = (10.0 - 9.0) / 9.5
+    expected_b = (20.0 - 19.0) / 19.5
     assert spread["A"].iloc[0] == pytest.approx(expected_a, rel=1e-3)
     assert spread["B"].iloc[0] == pytest.approx(expected_b, rel=1e-3)
 
@@ -101,9 +93,6 @@ def test_slippage_cost():
         index=pd.date_range("2024-01-01", periods=3),
     )
     cost = slippage_cost(weights, spreads, participation=0.05)
-    # Day 0: no prior position, slippage = 0
-    # Day 1: |wdiff| = 0.5 for each, slippage = 0.01*0.05*0.5 + 0.02*0.05*0.5 = 0.00075
-    # Day 2: 0
     assert cost.iloc[0] == pytest.approx(0.0)
     assert cost.iloc[1] == pytest.approx(0.00075, rel=1e-3)
     assert cost.iloc[2] == pytest.approx(0.0)
@@ -137,9 +126,6 @@ def test_total_cost_with_country_schedule():
     total, components = total_cost(weights, cost_bps=0.001, country_schedule=country_schedule)
     assert "country" in components
     assert "linear" in components
-    # Day 0: no trade, cost = 0
-    # Day 1: trade = 1.0. A cost = 0.5*0.002 + 0.5*0.003 = 0.0025
-    # Day 2: no trade, cost = 0
     assert components["linear"].iloc[0] == pytest.approx(0.0)
     assert components["linear"].iloc[1] == pytest.approx(0.0025)
     assert components["linear"].iloc[2] == pytest.approx(0.0)

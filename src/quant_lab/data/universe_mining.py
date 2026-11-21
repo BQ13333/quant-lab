@@ -500,9 +500,6 @@ def download_mined_universe_prices(
     )
 
 
-# ---------------------------------------------------------------------------
-# Asia / global exchange adapters
-# ---------------------------------------------------------------------------
 
 
 def parse_twse_listed(json_text: str) -> pd.DataFrame:
@@ -743,9 +740,6 @@ def parse_sse_listed(jsonp_text: str) -> pd.DataFrame:
     return _base_listing_frame(rows)
 
 
-# ---------------------------------------------------------------------------
-# ASEAN exchange adapters
-# ---------------------------------------------------------------------------
 
 
 def _sgx_security_type(name: str, sector: object) -> str:

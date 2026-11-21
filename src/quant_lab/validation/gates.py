@@ -72,32 +72,26 @@ class ValidationGate:
         reasons: list[str] = []
         row = leaderboard_row
 
-        # Net Sharpe thresholds
         net_sharpe = float(row.get("sharpe", 0.0))
         if net_sharpe < 0.8:
             reasons.append(f"net sharpe {net_sharpe:.2f} below minimum 0.80")
         elif net_sharpe < 1.25:
-            # Not fatal, but noted
             pass
 
-        # Deflated Sharpe probability
         dsr = float(row.get("deflated_sharpe", 0.0))
         if dsr < 0.80:
             reasons.append(f"deflated Sharpe probability {dsr:.2f} below minimum 0.80")
         elif dsr < 0.95:
             pass
 
-        # Excess return vs equal-weight
         excess = float(row.get("annual_excess_return", 0.0))
         if excess <= 0.0:
             reasons.append(f"annual excess return {excess:.2%} not positive")
 
-        # Information ratio
         ir = float(row.get("information_ratio", 0.0))
         if ir <= 0.0:
             reasons.append(f"information ratio {ir:.2f} not positive")
 
-        # Cost stress: survives 2x assumed cost
         cost_bps = float(row.get("cost_bps", 5.0))
         returns = row.get("returns")
         if returns is not None and isinstance(returns, pd.Series) and not returns.empty:
@@ -107,20 +101,16 @@ class ValidationGate:
                 if net_sharpe_2x <= 0.0:
                     reasons.append(f"net Sharpe at 2x cost ({cost_bps * 2:.0f} bps) {net_sharpe_2x:.2f} not positive")
         else:
-            # Cannot verify cost stress without returns
             pass
 
-        # Max drawdown within mandate
         dd = float(row.get("max_drawdown", 0.0))
         if dd < self.max_drawdown_limit:
             reasons.append(f"max drawdown {dd:.2%} below mandate {self.max_drawdown_limit:.2%}")
 
-        # Turnover
         to = float(row.get("turnover", 0.0))
         if to > self.max_turnover:
             reasons.append(f"turnover {to:.2f} above limit {self.max_turnover:.2f}")
 
-        # Country / month dominance checks
         if returns is not None and isinstance(returns, pd.Series) and not returns.empty:
             if weights is not None and group_map is not None and not group_map.empty:
                 if not no_single_country_dominance(returns, weights, group_map, max_country_contribution=0.5):

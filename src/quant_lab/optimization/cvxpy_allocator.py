@@ -9,7 +9,7 @@ import pandas as pd
 
 def _has_cvxpy() -> bool:
     try:
-        import cvxpy as cp  # noqa: F401
+        import cvxpy as cp
         return True
     except Exception:
         return False
@@ -106,7 +106,6 @@ def _turnover_constrained_numpy_fallback(
     long_only: bool,
     assets: list[str],
 ) -> pd.Series:
-    # Use max_sharpe heuristic as target
     cov = np.diag(np.ones(len(mu)))
     target = _max_sharpe_numpy_fallback(mu, cov, max_weight, long_only, assets).values
     diff = target - prev
@@ -139,7 +138,6 @@ def cvxpy_max_sharpe(
     mu = returns.values
     cov = cov_matrix.values
 
-    # Apply shrinkage
     mean_var = np.trace(cov) / cov.shape[0]
     target = np.eye(cov.shape[0]) * mean_var
     cov = (1 - shrinkage) * cov + shrinkage * target
@@ -295,7 +293,6 @@ def cvxpy_risk_parity(
 
             n = cov.shape[0]
             w = cp.Variable(n)
-            # Log-barrier risk-parity formulation (Spinu)
             obj = cp.Minimize(
                 0.5 * cp.quad_form(w, cov)
                 - cp.sum(cp.log(w + 1e-8))

@@ -696,7 +696,7 @@ def execute_lseg_usa_index_constituents(
                 normalized_path=normalized_path,
                 error=error,
             )
-        except Exception as exc:  # pragma: no cover - exercised by live vendor failures
+        except Exception as exc:
             ledger[request_id] = _manifest_row(
                 request,
                 status="failed",
@@ -1033,7 +1033,7 @@ def _resolve_lseg_identity_drift(
                 normalized_path=normalized_path,
                 normalized_hash=normalized_hash,
             )
-        except Exception as exc:  # pragma: no cover - exercised by live vendor failures
+        except Exception as exc:
             ledger[request_id] = _identity_manifest_row(
                 request_id=request_id,
                 status="failed",
@@ -1325,7 +1325,6 @@ def _normalize_joiner_leaver(
         raw_change = source_row.get(columns["change"])
         action = _normalize_action(raw_change)
         if pd.isna(effective) and not member and not _text(raw_change):
-            # LSEG represents a valid no-change window with one blank sentinel row.
             continue
         if pd.isna(effective) or not member or action is None:
             errors.append(f"row {ordinal} has invalid change date, member RIC, or action")

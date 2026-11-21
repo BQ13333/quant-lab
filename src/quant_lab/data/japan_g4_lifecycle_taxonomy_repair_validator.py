@@ -287,7 +287,7 @@ def _validate_official_pdfs(
             try:
                 with pdfplumber.open(pdf_path) as pdf:
                     pages = [page.extract_text() or "" for page in pdf.pages]
-            except Exception as exc:  # pdfplumber exposes several backend exception types.
+            except Exception as exc:
                 _issue(issues, "copied_pdf_unreadable", str(month), type(exc).__name__)
                 pages = []
                 exact = False

@@ -199,7 +199,7 @@ def produce_japan_g4_halt_timestamp_recovery(
                 publication_date=candidate.publication_date,
                 source_url=candidate.source_url,
             )
-        except Exception as error:  # The lane records source failure without promoting.
+        except Exception as error:
             base.update(_candidate_fields(candidate))
             base["unresolved_reason"] = (
                 f"official_notice_fetch_or_parse_failed:{type(error).__name__}:{error}"

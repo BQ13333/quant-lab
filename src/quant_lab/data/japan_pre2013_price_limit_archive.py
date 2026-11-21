@@ -227,7 +227,6 @@ def write_japan_pre2013_price_limit_archive(
             )
         return Pre2013PriceLimitArchiveArtifacts(run_id, root, root / "manifest.json", manifest)
     except Exception:
-        # A failed first write is not a publishable immutable run.
         _remove_tree(root)
         raise
 
@@ -707,7 +706,7 @@ def _fetch_all(
         try:
             status, body, headers = fetcher(url)
             return url, _Response(int(status), bytes(body), dict(headers))
-        except Exception as exc:  # Network failures are retained as evidence, not hidden.
+        except Exception as exc:
             return url, _Response(0, b"", {"x-acquisition-error": f"{type(exc).__name__}: {exc}"})
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:

@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 
-# ASEAN country cost schedule (decimal terms, e.g. 0.0015 = 15 bps)
 _COUNTRY_SCHEDULE: dict[str, float] = {
     "Singapore": 0.0015,
     "Indonesia": 0.0025,
@@ -34,8 +33,8 @@ def capacity_score(
 def country_cost_schedule(country: str, tier: str = "stock") -> float:
     """Return one-way transaction cost in decimal terms for a given country and tier."""
     if tier == "etf":
-        return 0.0005  # 5 bps
-    return _COUNTRY_SCHEDULE.get(country, 0.0015)  # Default 15 bps
+        return 0.0005
+    return _COUNTRY_SCHEDULE.get(country, 0.0015)
 
 
 def bps_cost_grid() -> list[float]:
@@ -60,7 +59,7 @@ def adv_participation_cost(
     aligned_adv = adv.reindex(weights.columns).replace(0.0, pd.NA)
     participation = dollar_trade.div(aligned_adv, axis=1)
     excess = participation / max_participation - 1.0
-    penalty = excess.clip(lower=0.0) * 0.005  # 50 bps in decimal
+    penalty = excess.clip(lower=0.0) * 0.005
     return penalty.sum(axis=1).fillna(0.0)
 
 
@@ -160,7 +159,6 @@ def turnover_decomposition(
     )
     result.index.name = "date"
 
-    # by_model from MultiIndex columns or metadata
     if isinstance(turnover.columns, pd.MultiIndex):
         model_groups = {}
         for model in turnover.columns.get_level_values(0).unique():
@@ -205,7 +203,6 @@ def turnover_decomposition(
                 axis=1,
             )
 
-    # Top asset contributors per day
     top_n = 3
     top_contributors = turnover.apply(
         lambda row: ", ".join(

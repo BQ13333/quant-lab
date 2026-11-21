@@ -70,7 +70,6 @@ def test_download_price_history_ohlcv():
     assert ("AAPL", "Low") in result.ohlcv.columns
     assert ("AAPL", "Volume") in result.ohlcv.columns
 
-    # Backward-compat Close-only frame should still exist
     assert "AAPL" in result.prices.columns
 
 
@@ -81,7 +80,6 @@ def test_download_price_history_empty_ohlcv():
 
 
 def test_download_price_history_failures():
-    # A ticker with no data in the mock
     result = download_price_history(["UNKNOWN"], period="1y", ohlcv=True)
     assert "UNKNOWN" in result.failures
     assert result.ohlcv is not None
